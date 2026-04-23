@@ -1,70 +1,46 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./UserLogin.css";
 
 export default function UserLogin() {
-    const [otp, setOtp] = useState("");
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
-
     const navigate = useNavigate();
 
+    const [loading, setLoading] = useState(false);
+
     const handleLogin = () => {
-        if (loading) return; // 🔒 prevent double clicks
-
-        setError("");
-
-        if (!otp.trim()) {
-            setError("Enter passphrase");
-            return;
-        }
-
         setLoading(true);
 
-        // 🔥 simulate small delay for UX
-        setTimeout(() => {
-            if (otp.trim().toLowerCase() === "halefire") {
-                localStorage.setItem("role", "user");
+        // ✅ simulate login (you can replace later with real auth)
+        localStorage.setItem("profile_id", "temp-user");
 
-                const profile = localStorage.getItem("profile_id");
+        // 🚫 ensure not admin
+        localStorage.removeItem("isAdmin");
 
-                if (profile) {
-                    navigate("/home", { replace: true });
-                } else {
-                    navigate("/create-profile", { replace: true });
-                }
-            } else {
-                setError("Invalid passphrase");
-                setLoading(false);
-            }
-        }, 400);
+        // 👉 go to profile setup
+        navigate("/create-profile");
     };
 
     return (
-        <div className="center-page">
-            <div className="card">
+        <div className="login-page">
 
-                <h1>WELCOME BACK</h1>
-                <p>Enter your one-time passphrase</p>
+            <div className="login-card">
 
-                <input
-                    type="password"
-                    placeholder="Enter passphrase"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    autoFocus
+                <h1>Enter FicVault</h1>
 
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") handleLogin();
-                    }}
-                />
+                <p>
+                    Continue to create your profile and access your private archive.
+                </p>
 
-                <button onClick={handleLogin} disabled={loading}>
-                    {loading ? "Entering..." : "ENTER VAULT"}
+                <button
+                    className="primary"
+                    onClick={handleLogin}
+                    disabled={loading}
+                >
+                    {loading ? "Entering..." : "Continue"}
                 </button>
 
-                {error && <p className="error">{error}</p>}
-
             </div>
+
         </div>
     );
 }

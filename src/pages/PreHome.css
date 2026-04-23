@@ -1,49 +1,15 @@
+/* ===== ROOT ===== */
 .prehome {
+    position: relative;
     height: 100vh;
+    background: linear-gradient(180deg, #e89a82, #f2b29a);
     display: flex;
     align-items: center;
     justify-content: center;
-
-    /* peach gradient */
-    background: linear-gradient(180deg, #e89a82, #f2b29a);
+    overflow: hidden;
 }
 
-/* CENTER CONTENT */
-.content {
-    text-align: center;
-    max-width: 420px;
-    color: #4a1d1a;
-}
-
-/* TITLE */
-.title {
-    font-family: "Playfair Display", serif;
-    font-size: 48px;
-    letter-spacing: 3px;
-    margin-bottom: 10px;
-}
-
-/* SUBTITLE */
-.subtitle {
-    font-size: 14px;
-    letter-spacing: 2px;
-    margin-bottom: 10px;
-}
-
-/* KEY */
-.key {
-    margin: 10px 0;
-    font-size: 18px;
-}
-
-/* DESCRIPTION */
-.desc {
-    font-size: 14px;
-    margin: 20px 0;
-    line-height: 1.6;
-}
-
-/* FAKE VAULT CIRCLE */
+/* ===== VAULT GLOW ===== */
 .prehome::before {
     content: "";
     position: absolute;
@@ -52,55 +18,10 @@
     background: radial-gradient(circle, #c77b65 0%, transparent 70%);
     border-radius: 50%;
     opacity: 0.4;
+    z-index: 0;
 }
 
-/* BUTTONS */
-.btn {
-    width: 100%;
-    padding: 14px;
-    margin-top: 12px;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-/* PRIMARY */
-.btn.primary {
-    background: #5a1f1b;
-    color: white;
-    border: none;
-}
-
-/* SECONDARY */
-.btn.secondary {
-    background: transparent;
-    border: 1px solid #5a1f1b;
-    color: #5a1f1b;
-}
-
-/* ADMIN */
-.admin {
-    margin-top: 14px;
-    font-size: 13px;
-}
-
-/* FOOTER */
-.footer {
-    margin-top: 30px;
-    font-size: 11px;
-}
-
-.prehome {
-    position: relative;
-    height: 100vh;
-    background: #F2B29A;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-/* 🔥 BACKGROUND IMAGE */
+/* ===== OPTIONAL BACKGROUND IMAGE ===== */
 .bg-overlay {
     position: absolute;
     inset: 0;
@@ -109,24 +30,86 @@
     z-index: 0;
 }
 
-/* 🔥 CONTENT ABOVE EVERYTHING */
+/* ===== CONTENT ===== */
 .content {
     position: relative;
     z-index: 2;
     text-align: center;
-    max-width: 500px;
+    max-width: 420px;
+    color: #4a1d1a;
 }
 
-/* BUTTON FIX */
+/* ===== TITLE ===== */
+.title {
+    font-family: "Playfair Display", serif;
+    font-size: 48px;
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+}
+
+/* ===== SUBTITLE ===== */
+.subtitle {
+    font-size: 14px;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+/* ===== ICON ===== */
+.key {
+    margin: 10px 0;
+    font-size: 18px;
+}
+
+/* ===== DESCRIPTION ===== */
+.desc {
+    font-size: 14px;
+    margin: 20px 0;
+    line-height: 1.6;
+}
+
+/* ===== BUTTON BASE ===== */
 .btn {
     width: 100%;
     padding: 14px;
     margin-top: 12px;
     border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+}
+
+/* ===== PRIMARY ===== */
+.btn.primary {
+    background: #5a1f1b;
+    color: white;
+}
+
+.btn.primary:hover {
+    background: #7a2a24;
+}
+
+/* ===== SECONDARY ===== */
+.btn.secondary {
+    background: transparent;
+    border: 1px solid #5a1f1b;
+    color: #5a1f1b;
+}
+
+/* ===== ADMIN ===== */
+.admin {
+    margin-top: 14px;
+    font-size: 13px;
+}
+
+.admin button {
+    background: none;
+    border: none;
+    color: #5a1f1b;
     cursor: pointer;
 }
 
-/* 🔥 IMPORTANT */
-button {
-    pointer-events: auto;
+/* ===== FOOTER ===== */
+.footer {
+    margin-top: 30px;
+    font-size: 11px;
 }

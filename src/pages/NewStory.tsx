@@ -1,173 +1,92 @@
-import { useState, useRef } from "react";
-import { supabase } from "../supabase";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { createStory, createChapter } from "../api";
+import "./NewStory.css";
 
-export default function NewStory({ user }: any) {
+export default function NewStory() {
     const navigate = useNavigate();
 
-    /* ================= STATE ================= */
-    const [title, setTitle] = useState("");
-    const [summary, setSummary] = useState("");
-    const [content, setContent] = useState("");
+    const profileId = localStorage.getItem("profile_id");
 
-    const [status, setStatus] = useState("ongoing");
-    const [isAnon, setIsAnon] = useState(false); // ✅ NEW
+    /* ===== STORY STATE ===== */
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [type, setType] = useState<"fanfiction" | "drabble">("fanfiction");
+
+    /* ===== CHAPTER STATE ===== */
+    const [chapters, setChapters] = useState([
+        { chapter_number: 1, title: "", content: "" },
+    ]);
 
     const [loading, setLoading] = useState(false);
-    const [preview, setPreview] = useState(false);
 
-    const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-
-    /* IMAGE MODAL */
-    const [showImageModal, setShowImageModal] = useState(false);
-    const [imgUrl, setImgUrl] = useState("");
-    const [imgWidth, setImgWidth] = useState("");
-    const [imgHeight, setImgHeight] = useState("");
-
-    if (!user) {
-        return <div style={{ padding: 40 }}>Please login</div>;
-    }
-
-    /* ================= EDITOR ================= */
-
-    const insertAtCursor = (text: string) => {
-        const textarea = textareaRef.current;
-        if (!textarea) return;
-
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-
-        const newText =
-            content.substring(0, start) +
-            text +
-            content.substring(end);
-
-        setContent(newText);
-
-        setTimeout(() => {
-            textarea.selectionStart = textarea.selectionEnd = start + text.length;
-            textarea.focus();
-        }, 0);
+    /* ===== ADD CHAPTER ===== */
+    const addChapter = () => {
+        setChapters((prev) => [
+            ...prev,
+            {
+                chapter_number: prev.length + 1,
+                title: "",
+                content: "",
+            },
+        ]);
     };
 
-    const wrapSelection = (open: string, close: string) => {
-        const textarea = textareaRef.current;
-        if (!textarea) return;
-
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-
-        const selected = content.substring(start, end);
-
-        const newText =
-            content.substring(0, start) +
-            open +
-            selected +
-            close +
-            content.substring(end);
-
-        setContent(newText);
+    /* ===== UPDATE CHAPTER ===== */
+    const updateChapter = (
+        index: number,
+        field: "title" | "content",
+        value: string
+    ) => {
+        const updated = [...chapters];
+        updated[index][field] = value;
+        setChapters(updated);
     };
 
-    /* ================= IMAGE UPLOAD ================= */
-
-    const uploadImage = async (file: File) => {
-        const fileName = `${Date.now()}-${file.name}`;
-
-        const { error } = await supabase.storage
-            .from("story-images")
-            .upload(fileName, file);
-
-        if (error) {
-            alert("Upload failed");
-            return null;
+    /* ===== SAVE ===== */
+    const handleSave = async () => {
+        if (!title.trim()) {
+            alert("Title is required");
+            return;
         }
-
-        const { data } = supabase.storage
-            .from("story-images")
-            .getPublicUrl(fileName);
-
-        return data.publicUrl;
-    };
-
-    /* ================= SAVE ================= */
-
-    const saveStory = async () => {
-        if (!title.trim()) return alert("Title required");
-        if (!content.trim()) return alert("Content required");
 
         setLoading(true);
 
         try {
-            const { data: story, error } = await supabase
-                .from("stories")
-                .insert([
-                    {
-                        title,
-                        summary,
-                        is_completed: status === "finished",
-                        user_id: isAnon ? null : user.id, // ✅ ANON SUPPORT
-                    },
-                ])
-                .select()
-                .single();
+            // 1️⃣ CREATE STORY
+            const story = await createStory({
+                title,
+                description,
+                type,
+                user_id: profileId,
+            });
 
-            if (error || !story) {
-                alert(error?.message);
-                return;
+            // 2️⃣ CREATE CHAPTERS
+            for (const ch of chapters) {
+                await createChapter({
+                    story_id: story.id,
+                    chapter_number: ch.chapter_number,
+                    title: ch.title,
+                    content: ch.content, // HTML supported
+                });
             }
 
-            await supabase.from("chapters").insert([
-                {
-                    story_id: story.id,
-                    title: "Chapter 1",
-                    content,
-                    chapter_no: 1,
-                },
-            ]);
-
-            alert("Story posted!");
-            navigate("/");
-        } catch (err: any) {
-            alert(err.message);
-        } finally {
-            setLoading(false);
+            navigate(`/story/${story.id}`);
+        } catch (err) {
+            console.error(err);
+            alert("Failed to create story");
         }
+
+        setLoading(false);
     };
 
     return (
         <div className="new-story">
 
             {/* HEADER */}
-            <div className="header">
-                <h1>New Story</h1>
+            <h1>Create New Story</h1>
 
-                <button onClick={() => setPreview(!preview)}>
-                    {preview ? "Edit" : "Preview"}
-                </button>
-            </div>
-
-            {/* META */}
-            <div className="meta">
-                <span>Chapter: 1/?</span>
-
-                <select value={status} onChange={(e) => setStatus(e.target.value)}>
-                    <option value="ongoing">Ongoing</option>
-                    <option value="finished">Finished</option>
-                </select>
-
-                {/* ✅ ANON TOGGLE */}
-                <label className="anon-toggle">
-                    <input
-                        type="checkbox"
-                        checked={isAnon}
-                        onChange={() => setIsAnon(!isAnon)}
-                    />
-                    Post Anonymously
-                </label>
-            </div>
-
-            {/* TITLE */}
+            {/* STORY INFO */}
             <input
                 className="input"
                 placeholder="Story Title"
@@ -175,123 +94,63 @@ export default function NewStory({ user }: any) {
                 onChange={(e) => setTitle(e.target.value)}
             />
 
-            {/* SUMMARY */}
             <textarea
                 className="input"
-                placeholder="Summary"
-                value={summary}
-                onChange={(e) => setSummary(e.target.value)}
+                placeholder="Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
             />
 
-            {/* TOOLBAR */}
-            {!preview && (
-                <div className="toolbar">
+            <select
+                className="input"
+                value={type}
+                onChange={(e) => setType(e.target.value as any)}
+            >
+                <option value="fanfiction">Fanfiction</option>
+                <option value="drabble">Drabble</option>
+            </select>
 
-                    <button onClick={() => wrapSelection("<b>", "</b>")}>B</button>
-                    <button onClick={() => wrapSelection("<i>", "</i>")}>I</button>
+            {/* CHAPTERS */}
+            <h2>Chapters</h2>
 
-                    <button onClick={() =>
-                        insertAtCursor('\n<hr class="scene-break" />\n')
-                    }>
-                        Divider
-                    </button>
+            {chapters.map((ch, i) => (
+                <div key={i} className="chapter-box">
 
-                    <button onClick={() =>
-                        wrapSelection('<p style="text-align:center;">', "</p>")
-                    }>
-                        Center
-                    </button>
-
-                    <button onClick={() => setShowImageModal(true)}>
-                        Image
-                    </button>
+                    <h3>Chapter {ch.chapter_number}</h3>
 
                     <input
-                        type="file"
-                        accept="image/*"
-                        onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-
-                            const url = await uploadImage(file);
-                            if (url) insertAtCursor(`<img src="${url}" />`);
-                        }}
+                        className="input"
+                        placeholder="Chapter Title"
+                        value={ch.title}
+                        onChange={(e) =>
+                            updateChapter(i, "title", e.target.value)
+                        }
                     />
+
+                    <textarea
+                        className="editor"
+                        placeholder="Write HTML content here..."
+                        value={ch.content}
+                        onChange={(e) =>
+                            updateChapter(i, "content", e.target.value)
+                        }
+                    />
+
                 </div>
-            )}
+            ))}
 
-            {/* EDITOR */}
-            {preview ? (
-                <div
-                    className="preview"
-                    dangerouslySetInnerHTML={{ __html: content }}
-                />
-            ) : (
-                <textarea
-                    ref={textareaRef}
-                    className="editor"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                />
-            )}
-
-            {/* POST */}
-            <button
-                className="primary"
-                onClick={saveStory}
-                disabled={loading}
-            >
-                {loading ? "Posting..." : "Post Story"}
+            <button className="secondary" onClick={addChapter}>
+                + Add Chapter
             </button>
 
-            {/* IMAGE MODAL */}
-            {showImageModal && (
-                <div className="modal-overlay">
-                    <div className="modal">
-
-                        <h3>Insert Image</h3>
-
-                        <input
-                            placeholder="Image URL"
-                            value={imgUrl}
-                            onChange={(e) => setImgUrl(e.target.value)}
-                        />
-
-                        <div className="row">
-                            <input
-                                placeholder="Width"
-                                value={imgWidth}
-                                onChange={(e) => setImgWidth(e.target.value)}
-                            />
-                            <input
-                                placeholder="Height"
-                                value={imgHeight}
-                                onChange={(e) => setImgHeight(e.target.value)}
-                            />
-                        </div>
-
-                        <button
-                            onClick={() => {
-                                if (!imgUrl) return;
-
-                                let style = "";
-                                if (imgWidth) style += `width:${imgWidth}px;`;
-                                if (imgHeight) style += `height:${imgHeight}px;`;
-
-                                insertAtCursor(`<img src="${imgUrl}" style="${style}" />`);
-
-                                setShowImageModal(false);
-                                setImgUrl("");
-                                setImgWidth("");
-                                setImgHeight("");
-                            }}
-                        >
-                            Insert
-                        </button>
-
-                    </div>
-                </div>
-            )}
+            {/* SAVE */}
+            <button
+                className="primary"
+                onClick={handleSave}
+                disabled={loading}
+            >
+                {loading ? "Saving..." : "Publish Story"}
+            </button>
 
         </div>
     );

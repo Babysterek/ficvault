@@ -1,164 +1,119 @@
-import {
-  Routes,
-  Route,
-  useNavigate,
-  Navigate,
-  useLocation,
-} from "react-router-dom";
-import type { ReactNode } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 
-/* ================= PAGES ================= */
-
-// ENTRY FLOW
+/* ===== PAGES ===== */
 import PreHome from "./pages/PreHome";
 import UserLogin from "./pages/UserLogin";
-import AdminPortal from "./pages/AdminPortal";
 import AdminLogin from "./pages/AdminLogin";
 
-// MAIN APP
 import CreateProfile from "./pages/CreateProfile";
 import Home from "./pages/Home";
+import MyStories from "./pages/MyStories";
+import Bookmarks from "./pages/Bookmarks";
 import NewStory from "./pages/NewStory";
 import Reader from "./pages/Reader";
-import Bookmarks from "./pages/Bookmarks";
+import AdminPortal from "./pages/AdminPortal";
+
+/* ===== COMPONENTS ===== */
+import Layout from "./components/Layout";
+import Gatekeeper from "./components/Gatekeeper";
+
+/* ===== WRAPPER ===== */
+const WithLayout = ({ children }: any) => {
+  return <Layout>{children}</Layout>;
+};
 
 export default function App() {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  /* ================= STATE ================= */
-  const role = localStorage.getItem("role");
-  const profileId = localStorage.getItem("profile_id");
-
-  /* ================= ROUTE GUARDS ================= */
-
-  const RequireRole = ({ children }: { children: ReactNode }) => {
-    if (!role) return <Navigate to="/" replace />;
-    return <>{children}</>;
-  };
-
-  const RequireProfile = ({ children }: { children: ReactNode }) => {
-    if (!profileId) return <Navigate to="/create-profile" replace />;
-    return <>{children}</>;
-  };
-
-  /* ================= NAVBAR CONTROL ================= */
-
-  const hideNavbarRoutes = ["/", "/login", "/admin", "/admin-login"];
-  const hideNavbar = hideNavbarRoutes.includes(location.pathname);
-
   return (
-    <div className={hideNavbar ? "" : "app-wrapper"}>
+    <Routes>
 
-      {/* ================= NAVBAR ================= */}
-      {!hideNavbar && role && (
-        <div className="navbar">
+      {/* ===== ENTRY ===== */}
+      <Route path="/" element={<PreHome />} />
+      <Route path="/login" element={<UserLogin />} />
+      <Route path="/admin-login" element={<AdminLogin />} />
 
-          <div className="logo" onClick={() => navigate("/home")}>
-            ✦ FicVault
-          </div>
+      {/* ===== PROFILE ===== */}
+      <Route
+        path="/create-profile"
+        element={
+          <Gatekeeper>
+            <CreateProfile />
+          </Gatekeeper>
+        }
+      />
 
-          <div style={{ display: "flex", gap: 10 }}>
+      {/* ===== HOME ===== */}
+      <Route
+        path="/home"
+        element={
+          <Gatekeeper requireProfile>
+            <WithLayout>
+              <Home />
+            </WithLayout>
+          </Gatekeeper>
+        }
+      />
 
-            <button onClick={() => navigate("/home")}>
-              Home
-            </button>
+      {/* ===== MY STORIES ===== */}
+      <Route
+        path="/my-stories"
+        element={
+          <Gatekeeper requireProfile>
+            <WithLayout>
+              <MyStories />
+            </WithLayout>
+          </Gatekeeper>
+        }
+      />
 
-            {role === "admin" && (
-              <button onClick={() => navigate("/new")}>
-                New Story
-              </button>
-            )}
+      {/* ===== BOOKMARKS ===== */}
+      <Route
+        path="/bookmarks"
+        element={
+          <Gatekeeper requireProfile>
+            <WithLayout>
+              <Bookmarks />
+            </WithLayout>
+          </Gatekeeper>
+        }
+      />
 
-            <button onClick={() => navigate("/bookmarks")}>
-              Bookmarks
-            </button>
+      {/* ===== ADMIN PANEL ===== */}
+      <Route
+        path="/admin"
+        element={
+          <Gatekeeper requireAdmin>
+            <WithLayout>
+              <AdminPortal />
+            </WithLayout>
+          </Gatekeeper>
+        }
+      />
 
-            <button
-              onClick={() => {
-                localStorage.clear();
-                navigate("/");
-              }}
-            >
-              Logout
-            </button>
-
-          </div>
-        </div>
-      )}
-
-      {/* ================= ROUTES ================= */}
-      <Routes>
-
-        {/* ===== ENTRY FLOW ===== */}
-        <Route path="/" element={<PreHome />} />
-        <Route path="/login" element={<UserLogin />} />
-        <Route path="/admin" element={<AdminPortal />} />
-        <Route path="/admin-login" element={<AdminLogin />} />
-
-        {/* ===== PROFILE ===== */}
-        <Route
-          path="/create-profile"
-          element={
-            <RequireRole>
-              <CreateProfile />
-            </RequireRole>
-          }
-        />
-
-        {/* ===== HOME ===== */}
-        <Route
-          path="/home"
-          element={
-            <RequireRole>
-              <RequireProfile>
-                <Home />
-              </RequireProfile>
-            </RequireRole>
-          }
-        />
-
-        {/* ===== NEW STORY (ADMIN ONLY) ===== */}
-        <Route
-          path="/new"
-          element={
-            role === "admin" ? (
+      {/* ===== NEW STORY (ADMIN ONLY) ===== */}
+      <Route
+        path="/new"
+        element={
+          <Gatekeeper requireAdmin>
+            <WithLayout>
               <NewStory />
-            ) : (
-              <Navigate to="/home" replace />
-            )
-          }
-        />
+            </WithLayout>
+          </Gatekeeper>
+        }
+      />
 
-        {/* ===== READER ===== */}
-        <Route
-          path="/story/:id"
-          element={
-            <RequireRole>
-              <RequireProfile>
-                <Reader />
-              </RequireProfile>
-            </RequireRole>
-          }
-        />
+      {/* ===== READER (NO LAYOUT — IMMERSIVE) ===== */}
+      <Route
+        path="/story/:id"
+        element={
+          <Gatekeeper>
+            <Reader />
+          </Gatekeeper>
+        }
+      />
 
-        {/* ===== BOOKMARKS ===== */}
-        <Route
-          path="/bookmarks"
-          element={
-            <RequireRole>
-              <RequireProfile>
-                <Bookmarks />
-              </RequireProfile>
-            </RequireRole>
-          }
-        />
+      {/* ===== FALLBACK ===== */}
+      <Route path="*" element={<Navigate to="/" replace />} />
 
-        {/* ✅ FALLBACK (VERY IMPORTANT) */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-
-      </Routes>
-
-    </div>
+    </Routes>
   );
 }

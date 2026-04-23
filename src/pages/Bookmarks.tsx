@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabase";
 import { useNavigate } from "react-router-dom";
+import "./Home.css";
 
 type Bookmark = {
     id: string;
@@ -8,23 +9,23 @@ type Bookmark = {
     stories?: {
         id: string;
         title: string;
-        summary: string | null;
+        description: string | null;
     } | null;
 };
 
 export default function Bookmarks() {
     const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
     const [loading, setLoading] = useState(true);
+
     const navigate = useNavigate();
+    const profileId = localStorage.getItem("profile_id");
 
     useEffect(() => {
         fetchBookmarks();
     }, []);
 
     const fetchBookmarks = async () => {
-        const role = localStorage.getItem("role");
-
-        if (!role) {
+        if (!profileId) {
             setBookmarks([]);
             setLoading(false);
             return;
@@ -33,15 +34,15 @@ export default function Bookmarks() {
         const { data, error } = await supabase
             .from("bookmarks")
             .select(`
-        id,
-        story_id,
-        stories (
-          id,
-          title,
-          summary
-        )
-      `)
-            .eq("user_id", role)
+                id,
+                story_id,
+                stories (
+                    id,
+                    title,
+                    description
+                )
+            `)
+            .eq("user_id", profileId)
             .order("created_at", { ascending: false });
 
         if (error) {
@@ -59,40 +60,48 @@ export default function Bookmarks() {
         setBookmarks((prev) => prev.filter((b) => b.id !== id));
     };
 
-    if (loading) {
-        return <div className="content">Loading bookmarks...</div>;
-    }
-
     return (
-        <div className="content" style={{ maxWidth: 900, margin: "auto" }}>
-            <h1>My Bookmarks</h1>
+        <div className="home-wrapper">
 
-            {bookmarks.length === 0 && <p>No bookmarks yet.</p>}
+            <div className="home-header">
+                <h1>My Bookmarks</h1>
+            </div>
 
-            {bookmarks.map((b) => (
-                <div key={b.id} className="story-card">
+            {/* LOADING */}
+            {loading ? (
+                <div className="empty-state">Loading bookmarks...</div>
+            ) : bookmarks.length === 0 ? (
+                <div className="empty-state">No bookmarks yet.</div>
+            ) : (
+                <div className="story-grid">
+                    {bookmarks.map((b) => (
+                        <div key={b.id} className="story-card">
 
-                    <div
-                        onClick={() => navigate(`/story/${b.story_id}`)}
-                        style={{ cursor: "pointer" }}
-                    >
-                        <div className="meta">📖 Story</div>
-                        <h3>{b.stories?.title || "Deleted story"}</h3>
+                            {/* CLICKABLE */}
+                            <div
+                                onClick={() => navigate(`/story/${b.story_id}`)}
+                                style={{ cursor: "pointer" }}
+                            >
+                                <h3>{b.stories?.title || "Deleted story"}</h3>
 
-                        {b.stories?.summary && (
-                            <p className="excerpt">{b.stories.summary}</p>
-                        )}
-                    </div>
+                                <p>
+                                    {b.stories?.description || "No description"}
+                                </p>
+                            </div>
 
-                    <button
-                        className="delete"
-                        onClick={() => removeBookmark(b.id)}
-                    >
-                        ✕
-                    </button>
+                            {/* REMOVE */}
+                            <button
+                                className="delete-btn"
+                                onClick={() => removeBookmark(b.id)}
+                            >
+                                Remove
+                            </button>
 
+                        </div>
+                    ))}
                 </div>
-            ))}
+            )}
+
         </div>
     );
 }

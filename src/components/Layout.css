@@ -1,0 +1,114 @@
+/* ===== ROOT LAYOUT ===== */
+.layout-container {
+    display: flex;
+    min-height: 100vh;
+    background: var(--bg-main);
+    font-family: Georgia, serif;
+}
+
+/* ===== SIDEBAR (AO3 STYLE) ===== */
+.sidebar {
+    width: 220px;
+    background: #d89c85;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+}
+
+.sidebar h2 {
+    margin-bottom: 25px;
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--text-primary);
+}
+
+/* ===== NAV BUTTONS ===== */
+.sidebar button {
+    background: transparent;
+    border: none;
+    padding: 10px;
+    text-align: left;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+    transition: 0.2s;
+}
+
+.sidebar button:hover {
+    background: #c88d76;
+}
+
+/* ACTIVE LINK */
+.sidebar .active {
+    background: var(--bg-accent);
+    color: white;
+    font-weight: bold;
+}
+
+/* ===== RIGHT SIDE ===== */
+.layout-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===== NAVBAR ===== */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 30px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-main);
+}
+
+/* LEFT TITLE */
+.nav-left h2 {
+    margin: 0;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* RIGHT SIDE */
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* USER NAME */
+.profile {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+/* LOGOUT BUTTON */
+.logout {
+    background: var(--btn-primary);
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.logout:hover {
+    background: var(--btn-primary-hover);
+}
+
+/* ===== MAIN CONTENT AREA ===== */
+.layout-main {
+    padding: 30px;
+}
+
+/* ===== AO3 STYLE CONTENT WRAPPER ===== */
+.page-container {
+    max-width: 800px;
+    margin: auto;
+    background: var(--bg-card);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}

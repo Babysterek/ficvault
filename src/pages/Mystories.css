@@ -1,0 +1,19 @@
+.my-stories {
+    width: 100%;
+}
+
+/* HEADER */
+.ms-header h1 {
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+
+.ms-header p {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+/* EMPTY */
+.empty {
+    color: var(--text-secondary);
+}

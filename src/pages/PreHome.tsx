@@ -7,52 +7,47 @@ export default function PreHome() {
     return (
         <div className="prehome">
 
-            {/* 🔥 BACKGROUND LAYER (important for design) */}
+            {/* BACKGROUND IMAGE */}
             <div className="bg-overlay" />
 
+            {/* CONTENT */}
             <div className="content">
 
                 <h1 className="title">FICVAULT</h1>
 
-                <p className="subtitle">
-                    TALES & DRABBLES, KEPT SAFE.
-                </p>
+                <p className="subtitle">A PRIVATE ARCHIVE</p>
 
-                <div className="key">🔑</div>
+                <p className="key">🔐</p>
 
                 <p className="desc">
-                    A curated collection of fanfictions and drabbles —
-                    explore, read, and get inspired.
+                    A quiet place to store stories, read without noise, and keep what matters.
                 </p>
 
-                {/* ENTER SITE */}
+                {/* USER LOGIN */}
                 <button
                     className="btn primary"
                     onClick={() => navigate("/login")}
                 >
-                    ENTER SITE
+                    Enter Vault
                 </button>
 
-                {/* LOGIN */}
+                {/* PROFILE FLOW */}
                 <button
                     className="btn secondary"
-                    onClick={() => navigate("/login")}
+                    onClick={() => navigate("/create-profile")}
                 >
-                    LOGIN
+                    Create Profile
                 </button>
 
                 {/* ADMIN */}
-                <button
-                    className="admin"
-                    onClick={() => navigate("/admin")}
-                >
-                    ADMIN LOGIN
-                </button>
+                <div className="admin">
+                    <button onClick={() => navigate("/admin-login")}>
+                        Admin Access
+                    </button>
+                </div>
 
                 <div className="footer">
-                    ABOUT FICVAULT | THE LATEST FANFICTIONS | THE DRABBLE ARCHIVE
-                    <br />
-                    © FicVault
+                    FicVault • Private Archive System
                 </div>
 
             </div>

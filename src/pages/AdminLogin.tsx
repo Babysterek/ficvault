@@ -2,50 +2,41 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function AdminLogin() {
-    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
     const navigate = useNavigate();
 
     const handleLogin = () => {
-        setError("");
+        if (password === "ammu") {
+            // ✅ SET ADMIN
+            localStorage.setItem("isAdmin", "true");
 
-        if (
-            username === "babysterek" &&
-            password === "ammuisfine"
-        ) {
-            localStorage.setItem("role", "admin");
+            // 🚫 REMOVE USER SESSION
+            localStorage.removeItem("profile_id");
+
+            // 👉 GO TO HOME
             navigate("/home");
-            return;
+        } else {
+            alert("Wrong password");
         }
-
-        setError("Invalid admin credentials");
     };
 
     return (
-        <div className="center-page">
-            <div className="card">
-                <h1>ADMIN ACCESS</h1>
+        <div className="login-page">
 
-                <input
-                    placeholder="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                />
+            <h2>Admin Login</h2>
 
-                <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
+            <input
+                type="password"
+                placeholder="Enter admin password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input"
+            />
 
-                <button onClick={handleLogin}>
-                    ENTER DASHBOARD
-                </button>
+            <button onClick={handleLogin} className="primary">
+                Login as Admin
+            </button>
 
-                {error && <p className="error">{error}</p>}
-            </div>
         </div>
     );
 }

@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { supabase } from "../supabase";
-import { toggleBookmark } from "./toggleBookmark";
+import {
+    getStoryById,
+    getChapters,
+    addBookmark,
+    removeBookmark,
+    getBookmarks,
+} from "../api";
+import "./Reader.css";
 
 export default function Reader() {
     const { id } = useParams();
@@ -9,66 +15,36 @@ export default function Reader() {
     const [story, setStory] = useState<any>(null);
     const [chapters, setChapters] = useState<any[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
-
-    const [loading, setLoading] = useState(true);
     const [isBookmarked, setIsBookmarked] = useState(false);
 
     const profileId = localStorage.getItem("profile_id");
 
     /* ================= FETCH ================= */
-
     useEffect(() => {
         if (!id) return;
         fetchData();
     }, [id]);
 
     const fetchData = async () => {
-        setLoading(true);
+        try {
+            const storyData = await getStoryById(id!);
+            const chapterData = await getChapters(id!);
 
-        const { data: storyData } = await supabase
-            .from("stories")
-            .select("*")
-            .eq("id", id)
-            .single();
+            setStory(storyData);
+            setChapters(chapterData || []);
 
-        const { data: chapterData } = await supabase
-            .from("chapters")
-            .select("*")
-            .eq("story_id", id)
-            .order("chapter_no", { ascending: true });
-
-        if (profileId) {
-            const { data: bookmark } = await supabase
-                .from("bookmarks")
-                .select("*")
-                .eq("user_id", profileId)
-                .eq("story_id", id)
-                .maybeSingle();
-
-            setIsBookmarked(!!bookmark);
+            // check bookmark
+            if (profileId) {
+                const bookmarks = await getBookmarks(profileId);
+                const found = bookmarks?.find((b: any) => b.story_id === id);
+                setIsBookmarked(!!found);
+            }
+        } catch (err) {
+            console.error(err);
         }
-
-        if (storyData) setStory(storyData);
-        if (chapterData) setChapters(chapterData);
-
-        setLoading(false);
-    };
-
-    /* ================= BOOKMARK ================= */
-
-    const handleBookmark = async () => {
-        if (!profileId || !id) return;
-
-        const result = await toggleBookmark({
-            userId: profileId,
-            storyId: id,
-        });
-
-        setIsBookmarked(result);
     };
 
     /* ================= NAVIGATION ================= */
-
     const nextChapter = () => {
         if (currentIndex < chapters.length - 1) {
             setCurrentIndex((prev) => prev + 1);
@@ -83,70 +59,91 @@ export default function Reader() {
         }
     };
 
+    /* ================= BOOKMARK ================= */
+    const toggleBookmark = async () => {
+        if (!profileId || !id) return;
+
+        try {
+            if (isBookmarked) {
+                await removeBookmark(profileId, id);
+                setIsBookmarked(false);
+            } else {
+                await addBookmark(profileId, id);
+                setIsBookmarked(true);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     /* ================= UI ================= */
 
-    if (loading) return <p>Loading...</p>;
-    if (!story) return <p>Story not found</p>;
-    if (chapters.length === 0) return <p>No chapters yet.</p>;
+    if (!story) return <div className="reader-empty">Loading...</div>;
+    if (chapters.length === 0)
+        return <div className="reader-empty">No chapters yet.</div>;
 
     const currentChapter = chapters[currentIndex];
 
     return (
-        <div className="reader">
+        <div className="reader-layout">
 
-            {/* HEADER */}
-            <h1>{story.title}</h1>
+            {/* ===== LEFT SIDEBAR ===== */}
+            <aside className="chapter-sidebar">
+                {chapters.map((ch, i) => (
+                    <div
+                        key={ch.id}
+                        className={`chapter-item ${i === currentIndex ? "active" : ""}`}
+                        onClick={() => setCurrentIndex(i)}
+                    >
+                        Chapter {ch.chapter_number}
+                    </div>
+                ))}
+            </aside>
 
-            <div className="meta">
-                by <strong>Babysterek</strong>
+            {/* ===== MAIN READER ===== */}
+            <div className="reader-main">
+
+                <div className="reader-card">
+
+                    {/* HEADER */}
+                    <h1>{story.title}</h1>
+
+                    <div className="reader-meta">
+                        <span>by {story.author || "Unknown"}</span>
+                        <span>{story.type}</span>
+                    </div>
+
+                    <button className="primary" onClick={toggleBookmark}>
+                        {isBookmarked ? "Remove Bookmark" : "Add Bookmark"}
+                    </button>
+
+                    {/* CHAPTER */}
+                    <div className="chapter-header">
+                        Chapter {currentChapter.chapter_number} / {chapters.length}
+                    </div>
+
+                    {/* CONTENT */}
+                    <div
+                        className="story-content"
+                        dangerouslySetInnerHTML={{ __html: currentChapter.content }}
+                    />
+
+                    {/* NAVIGATION */}
+                    <div className="reader-controls">
+                        <button onClick={prevChapter} disabled={currentIndex === 0}>
+                            ← Previous
+                        </button>
+
+                        <button
+                            onClick={nextChapter}
+                            disabled={currentIndex === chapters.length - 1}
+                        >
+                            Next →
+                        </button>
+                    </div>
+
+                </div>
             </div>
-
-            <div className="meta">
-                {story.total_words || 0} words
-            </div>
-
-            <span
-                className={`status ${story.is_completed ? "completed" : "ongoing"
-                    }`}
-            >
-                {story.is_completed ? "Completed" : "Ongoing"}
-            </span>
-
-            {/* BOOKMARK */}
-            <div style={{ marginTop: 10 }}>
-                <button onClick={handleBookmark} className="primary">
-                    {isBookmarked ? "Remove Bookmark" : "Add Bookmark"}
-                </button>
-            </div>
-
-            <hr style={{ margin: "20px 0" }} />
-
-            {/* CHAPTER TITLE */}
-            <h3>
-                Chapter {currentChapter.chapter_no} / {chapters.length}
-            </h3>
-
-            {/* CONTENT */}
-            <div
-                dangerouslySetInnerHTML={{ __html: currentChapter.content }}
-            />
-
-            {/* NAVIGATION */}
-            <div className="reader-controls">
-
-                <button onClick={prevChapter} disabled={currentIndex === 0}>
-                    ← Previous
-                </button>
-
-                <button
-                    onClick={nextChapter}
-                    disabled={currentIndex === chapters.length - 1}
-                >
-                    Next →
-                </button>
-
-            </div>
-
         </div>
     );
 }
