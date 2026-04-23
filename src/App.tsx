@@ -15,12 +15,18 @@ function App() {
     <Router>
       <div className="app-container">
         <Routes>
+          {/* Public Gate */}
           <Route path="/entry" element={!user ? <Gatekeeper setUser={setUser} /> : <Navigate to="/" />} />
+
+          {/* Protected Archive */}
           <Route path="/" element={user ? <Home user={user} /> : <Navigate to="/entry" />} />
           <Route path="/read/:id" element={user ? <Reader user={user} /> : <Navigate to="/entry" />} />
+          <Route path="/my-stories" element={user ? <MyStories user={user} /> : <Navigate to="/entry" />} />
+
+          {/* Admin Tools */}
           <Route path="/post-work" element={user?.isAdmin ? <NewStory /> : <Navigate to="/" />} />
           <Route path="/admin-portal" element={user?.isAdmin ? <AdminPortal /> : <Navigate to="/" />} />
-          <Route path="/my-stories" element={user ? <MyStories user={user} /> : <Navigate to="/entry" />} />
+
           <Route path="*" element={<Navigate to="/entry" />} />
         </Routes>
       </div>
