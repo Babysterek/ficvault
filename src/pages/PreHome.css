@@ -1,0 +1,132 @@
+.prehome {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* peach gradient */
+    background: linear-gradient(180deg, #e89a82, #f2b29a);
+}
+
+/* CENTER CONTENT */
+.content {
+    text-align: center;
+    max-width: 420px;
+    color: #4a1d1a;
+}
+
+/* TITLE */
+.title {
+    font-family: "Playfair Display", serif;
+    font-size: 48px;
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+}
+
+/* SUBTITLE */
+.subtitle {
+    font-size: 14px;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+}
+
+/* KEY */
+.key {
+    margin: 10px 0;
+    font-size: 18px;
+}
+
+/* DESCRIPTION */
+.desc {
+    font-size: 14px;
+    margin: 20px 0;
+    line-height: 1.6;
+}
+
+/* FAKE VAULT CIRCLE */
+.prehome::before {
+    content: "";
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, #c77b65 0%, transparent 70%);
+    border-radius: 50%;
+    opacity: 0.4;
+}
+
+/* BUTTONS */
+.btn {
+    width: 100%;
+    padding: 14px;
+    margin-top: 12px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* PRIMARY */
+.btn.primary {
+    background: #5a1f1b;
+    color: white;
+    border: none;
+}
+
+/* SECONDARY */
+.btn.secondary {
+    background: transparent;
+    border: 1px solid #5a1f1b;
+    color: #5a1f1b;
+}
+
+/* ADMIN */
+.admin {
+    margin-top: 14px;
+    font-size: 13px;
+}
+
+/* FOOTER */
+.footer {
+    margin-top: 30px;
+    font-size: 11px;
+}
+
+.prehome {
+    position: relative;
+    height: 100vh;
+    background: #F2B29A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* 🔥 BACKGROUND IMAGE */
+.bg-overlay {
+    position: absolute;
+    inset: 0;
+    background: url("/vault.png") center/cover no-repeat;
+    opacity: 0.25;
+    z-index: 0;
+}
+
+/* 🔥 CONTENT ABOVE EVERYTHING */
+.content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    max-width: 500px;
+}
+
+/* BUTTON FIX */
+.btn {
+    width: 100%;
+    padding: 14px;
+    margin-top: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+/* 🔥 IMPORTANT */
+button {
+    pointer-events: auto;
+}

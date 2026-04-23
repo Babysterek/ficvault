@@ -1,0 +1,103 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../supabase";
+
+export default function CreateProfile() {
+    const navigate = useNavigate();
+
+    const [username, setUsername] = useState("");
+    const [anonName, setAnonName] = useState("");
+    const [anonColor, setAnonColor] = useState("#6366f1");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    const handleCreate = async () => {
+        setError("");
+
+        if (!username.trim()) {
+            setError("Username is required");
+            return;
+        }
+
+        const role = localStorage.getItem("role");
+
+        if (!role) {
+            setError("No role found. Go back and enter again.");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const { data, error } = await supabase
+                .from("profiles")
+                .insert([
+                    {
+                        username,
+                        anon_name: anonName || username,
+                        anon_color: anonColor,
+                        role,
+                    },
+                ])
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            if (!data || !data.id) {
+                throw new Error("Profile creation failed");
+            }
+
+            localStorage.setItem("profile_id", data.id);
+
+            navigate("/home");
+
+        } catch (err) {
+            const message =
+                err instanceof Error
+                    ? err.message
+                    : "Something went wrong";
+
+            setError(message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="profile-page">
+            <div className="card">
+                <h1>Create Profile</h1>
+
+                <input
+                    placeholder="Username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                />
+
+                <input
+                    placeholder="Anonymous Name (optional)"
+                    value={anonName}
+                    onChange={(e) => setAnonName(e.target.value)}
+                />
+
+                <label style={{ fontSize: "14px", marginBottom: "6px", display: "block" }}>
+                    Pick Color
+                </label>
+
+                <input
+                    type="color"
+                    value={anonColor}
+                    onChange={(e) => setAnonColor(e.target.value)}
+                    style={{ marginBottom: "16px" }}
+                />
+
+                <button onClick={handleCreate} disabled={loading}>
+                    {loading ? "Creating..." : "Create Profile"}
+                </button>
+
+                {error && <p className="error">{error}</p>}
+            </div>
+        </div>
+    );
+}

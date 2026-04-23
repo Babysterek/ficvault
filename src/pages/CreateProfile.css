@@ -1,0 +1,89 @@
+.profile-page {
+    min-height: 100vh;
+    background: #F2B29A;
+    padding: 40px;
+    text-align: center;
+}
+
+/* HEADER */
+.profile-header {
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* TITLE */
+h1 {
+    font-family: serif;
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+.subtext {
+    margin-bottom: 30px;
+    color: #5a3b2e;
+}
+
+/* GRID */
+.profile-grid {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+/* CARD */
+.card {
+    background: #fff5ef;
+    padding: 30px;
+    border-radius: 16px;
+    width: 320px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* ICON */
+.icon {
+    font-size: 30px;
+    margin-bottom: 10px;
+}
+
+/* INPUT */
+.card input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+/* BUTTON */
+.card button {
+    width: 100%;
+    margin-top: 15px;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #6b1d1d;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.card button:hover {
+    background: #4a1414;
+}
+
+.card input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+/* ERROR */
+.error {
+    color: red;
+    margin-top: 10px;
+    font-size: 14px;
+}

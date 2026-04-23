@@ -1,0 +1,104 @@
+/* ===== GLOBAL RESET ===== */
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  background: #f2b29a;
+}
+
+/* ===== PREHOME PAGE ===== */
+.prehome {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(rgba(242, 178, 154, 0.92),
+      rgba(242, 178, 154, 0.92)),
+    url("/vault-bg.png");
+  /* optional image */
+  background-size: cover;
+}
+
+/* CARD */
+.prehome-card {
+  width: 420px;
+  background: #fff3ee;
+  border-radius: 16px;
+  padding: 40px 30px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+/* TITLE */
+.prehome-title {
+  font-family: "Playfair Display", serif;
+  font-size: 42px;
+  letter-spacing: 2px;
+  color: #5a1f1b;
+  margin-bottom: 10px;
+}
+
+/* SUBTITLE */
+.prehome-sub {
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: #7a4a45;
+  margin-bottom: 10px;
+}
+
+/* DESCRIPTION */
+.prehome-desc {
+  font-size: 14px;
+  color: #6a4b46;
+  margin: 20px 0;
+  line-height: 1.6;
+}
+
+/* BUTTONS */
+.prehome-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+/* PRIMARY */
+.prehome-btn.primary {
+  background: #6b1f1f;
+  color: white;
+  border: none;
+}
+
+.prehome-btn.primary:hover {
+  background: #4e1414;
+}
+
+/* SECONDARY */
+.prehome-btn.secondary {
+  background: transparent;
+  border: 1px solid #6b1f1f;
+  color: #6b1f1f;
+}
+
+.prehome-btn.secondary:hover {
+  background: #6b1f1f;
+  color: white;
+}
+
+/* ADMIN LINK */
+.prehome-admin {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #5a1f1b;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* FOOTER */
+.prehome-footer {
+  margin-top: 30px;
+  font-size: 12px;
+  color: #7a4a45;
+}
