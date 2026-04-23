@@ -1,17 +1,14 @@
-<div className="layout-container">
+import { useNavigate } from "react-router-dom";
 
-    <Sidebar />
+export default function Sidebar() {
+    const navigate = useNavigate();
 
-    <div className="layout-content">
+    return (
+        <div className="sidebar">
+            <h2 onClick={() => navigate("/home")}>FicVault</h2>
 
-        <Navbar />
-
-        <main className="layout-main">
-            <div className="page-container">
-                {children}
-            </div>
-        </main>
-
-    </div>
-
-</div>
+            <button onClick={() => navigate("/home")}>Home</button>
+            <button onClick={() => navigate("/bookmarks")}>Bookmarks</button>
+        </div>
+    );
+}

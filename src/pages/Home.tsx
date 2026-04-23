@@ -1,88 +1,23 @@
-import { useEffect, useState } from "react";
-import { supabase } from "../supabase";
-import StoryCard from "../components/StoryCard";
-import "./Home.css";
+import React from 'react';
+import { Link } from 'react-router-dom';
 
-export default function Home() {
-    const [stories, setStories] = useState<any[]>([]);
-    const [filter, setFilter] = useState<"all" | "fanfiction" | "drabble">("all");
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        fetchStories();
-    }, []);
-
-    const fetchStories = async () => {
-        setLoading(true);
-
-        const { data, error } = await supabase
-            .from("stories")
-            .select("*")
-            .order("created_at", { ascending: false });
-
-        if (error) {
-            console.error(error);
-            setStories([]);
-        } else {
-            setStories(data || []);
-        }
-
-        setLoading(false);
-    };
-
-    /* ===== FILTER ===== */
-    const filteredStories = stories.filter((s) => {
-        if (filter === "fanfiction") return s.type === "fanfiction";
-        if (filter === "drabble") return s.type === "drabble";
-        return true;
-    });
-
+export default function Home({ user }: any) {
     return (
-        <div className="home">
+        <div style={{ maxWidth: '1000px', margin: 'auto', padding: '20px' }}>
+            <header style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #3E2723', paddingBottom: '10px' }}>
+                <h2 style={{ color: '#900', margin: 0 }}>FICVAULT</h2>
+                <nav style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+                    <Link to="/" style={{ color: '#3E2723', textDecoration: 'none' }}>Archive</Link>
+                    {user.isAdmin && <Link to="/admin-portal" style={{ fontWeight: 'bold', color: 'red' }}>Admin Portal</Link>}
+                    {user.isAdmin && <Link to="/post-work" style={{ fontWeight: 'bold', color: '#3E2723' }}>Post New</Link>}
+                    <span>{user.pseudo}</span>
+                </nav>
+            </header>
 
-            {/* HEADER */}
-            <div className="home-header">
-                <h1>Explore Stories</h1>
-                <p>Curated fanfictions & drabbles — read and get lost.</p>
+            <div style={{ padding: '40px', textAlign: 'center' }}>
+                <h1>Welcome to the Archive</h1>
+                <p>Browse stories or check your bookmarks.</p>
             </div>
-
-            {/* FILTER */}
-            <div className="home-filters">
-                <button
-                    className={filter === "all" ? "active" : ""}
-                    onClick={() => setFilter("all")}
-                >
-                    All
-                </button>
-
-                <button
-                    className={filter === "fanfiction" ? "active" : ""}
-                    onClick={() => setFilter("fanfiction")}
-                >
-                    Fanfictions
-                </button>
-
-                <button
-                    className={filter === "drabble" ? "active" : ""}
-                    onClick={() => setFilter("drabble")}
-                >
-                    Drabbles
-                </button>
-            </div>
-
-            {/* CONTENT */}
-            {loading ? (
-                <div className="empty">Loading...</div>
-            ) : filteredStories.length === 0 ? (
-                <div className="empty">No stories yet.</div>
-            ) : (
-                <div className="story-list">
-                    {filteredStories.map((story) => (
-                        <StoryCard key={story.id} story={story} />
-                    ))}
-                </div>
-            )}
-
         </div>
     );
 }

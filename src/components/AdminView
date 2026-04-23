@@ -1,0 +1,10 @@
+const isAdmin = userPseudo === "Babysterek";
+
+// Inside your UI
+{isAdmin && (
+  <div className="admin-controls">
+    <button onClick={handleDeleteComment}>Delete Comment</button>
+    <button onClick={handleBanUser}>Ban User</button>
+    <Link to="/upload-epub">Upload New Work</Link>
+  </div>
+)}

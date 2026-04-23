@@ -1,112 +1,61 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-    getStories,
-    deleteStory,
-} from "../api";
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { supabase } from '../supabase';
 
 export default function AdminPortal() {
-    const [stories, setStories] = useState<any[]>([]);
-    const navigate = useNavigate();
+    const [profiles, setProfiles] = useState<any[]>([]);
 
-    const isAdmin = localStorage.getItem("isAdmin") === "true";
-
-    /* ================= GUARD ================= */
     useEffect(() => {
-        if (!isAdmin) {
-            navigate("/home");
-        }
+        const getProfiles = async () => {
+            const { data } = await supabase.from('profiles').select('*');
+            if (data) setProfiles(data);
+        };
+        getProfiles();
     }, []);
 
-    /* ================= FETCH ================= */
-    useEffect(() => {
-        fetchStories();
-    }, []);
-
-    const fetchStories = async () => {
-        try {
-            const data = await getStories();
-            setStories(data || []);
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    /* ================= DELETE ================= */
-    const handleDelete = async (id: string) => {
-        const confirmDelete = confirm("Delete this story?");
-        if (!confirmDelete) return;
-
-        try {
-            await deleteStory(id);
-            setStories((prev) => prev.filter((s) => s.id !== id));
-        } catch (err) {
-            console.error(err);
+    const revokeAccess = async (id: string) => {
+        const { error } = await supabase.from('profiles').delete().eq('id', id);
+        if (!error) {
+            setProfiles(profiles.filter(p => p.id !== id));
+            alert("Member access revoked.");
         }
     };
 
     return (
-        <div>
+        <div style={{ padding: '40px', maxWidth: '1000px', margin: 'auto' }}>
+            <nav style={{ marginBottom: '40px' }}>
+                <Link to="/" style={{ color: '#3E2723' }}>← Return to Archive</Link>
+            </nav>
 
-            {/* HEADER */}
-            <h1>Admin Dashboard</h1>
-            <p>Manage all stories and chapters</p>
+            <h1 style={{ borderBottom: '2px solid #3E2723', paddingBottom: '10px' }}>Admin Command Center</h1>
 
-            {/* ACTION */}
-            <button
-                className="primary"
-                onClick={() => navigate("/new")}
-            >
-                + Create New Story
-            </button>
-
-            <br /><br />
-
-            {/* LIST */}
-            {stories.length === 0 ? (
-                <p>No stories yet.</p>
-            ) : (
-                <div className="story-list">
-                    {stories.map((story) => (
-                        <div key={story.id} className="story-card">
-
-                            <h2>{story.title}</h2>
-
-                            <p className="meta">
-                                {story.type}
-                            </p>
-
-                            {/* ACTIONS */}
-                            <div style={{ display: "flex", gap: "10px" }}>
-
-                                <button
-                                    className="read-btn"
-                                    onClick={() => navigate(`/story/${story.id}`)}
-                                >
-                                    View
-                                </button>
-
-                                <button
-                                    className="primary"
-                                    onClick={() => navigate(`/new?edit=${story.id}`)}
-                                >
-                                    Edit
-                                </button>
-
-                                <button
-                                    className="delete-btn"
-                                    onClick={() => handleDelete(story.id)}
-                                >
-                                    Delete
-                                </button>
-
-                            </div>
-
-                        </div>
-                    ))}
-                </div>
-            )}
-
+            <div style={{ marginTop: '30px' }}>
+                <h3>Vault Member Management</h3>
+                <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px', background: 'white' }}>
+                    <thead>
+                        <tr style={{ background: '#3E2723', color: '#F2B29A', textAlign: 'left' }}>
+                            <th style={{ padding: '10px' }}>Pseudonym</th>
+                            <th style={{ padding: '10px' }}>Subscribed</th>
+                            <th style={{ padding: '10px' }}>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {profiles.map(profile => (
+                            <tr key={profile.id} style={{ borderBottom: '1px solid #ccc' }}>
+                                <td style={{ padding: '10px' }}>{profile.username}</td>
+                                <td style={{ padding: '10px' }}>{profile.is_subscribed ? '🔔 Yes' : 'No'}</td>
+                                <td style={{ padding: '10px' }}>
+                                    {profile.username !== 'Babysterek' && (
+                                        <button onClick={() => revokeAccess(profile.id)} style={{ background: 'red', fontSize: '0.7rem' }}>
+                                            REVOKE ACCESS
+                                        </button>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }

@@ -1,10 +1,16 @@
-const handleCreate = async () => {
-    if (!name.trim()) {
-        alert("Enter a name");
-        return;
-    }
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../supabase";
 
-    try {
+export default function CreateProfile() {
+    const [name, setName] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const navigate = useNavigate();
+
+    const handleCreate = async () => {
+        if (!name.trim()) return;
+
         setLoading(true);
 
         const { data, error } = await supabase
@@ -13,22 +19,27 @@ const handleCreate = async () => {
             .select()
             .single();
 
-        if (error) {
-            console.error(error);
-            alert("Failed to create profile");
-            return;
+        if (!error && data) {
+            localStorage.setItem("profile_id", data.id);
+            navigate("/home");
         }
 
-        // ✅ SAVE PROFILE ID
-        localStorage.setItem("profile_id", data.id);
-
-        // 👉 GO HOME
-        navigate("/home");
-
-    } catch (err) {
-        console.error(err);
-        alert("Something went wrong");
-    } finally {
         setLoading(false);
-    }
-};
+    };
+
+    return (
+        <div>
+            <h1>Create Profile</h1>
+
+            <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter name"
+            />
+
+            <button onClick={handleCreate}>
+                {loading ? "Creating..." : "Create"}
+            </button>
+        </div>
+    );
+}

@@ -1,157 +1,127 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { createStory, createChapter } from "../api";
-import "./NewStory.css";
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { supabase } from '../supabase';
 
 export default function NewStory() {
-    const navigate = useNavigate();
-
-    const profileId = localStorage.getItem("profile_id");
-
-    /* ===== STORY STATE ===== */
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [type, setType] = useState<"fanfiction" | "drabble">("fanfiction");
-
-    /* ===== CHAPTER STATE ===== */
-    const [chapters, setChapters] = useState([
-        { chapter_number: 1, title: "", content: "" },
-    ]);
-
+    const [title, setTitle] = useState('');
+    const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
+    const [profiles, setProfiles] = useState<any[]>([]);
 
-    /* ===== ADD CHAPTER ===== */
-    const addChapter = () => {
-        setChapters((prev) => [
-            ...prev,
-            {
-                chapter_number: prev.length + 1,
-                title: "",
-                content: "",
-            },
-        ]);
-    };
+    // Fetch users for the management table
+    useEffect(() => {
+        const fetchUsers = async () => {
+            const { data } = await supabase.from('profiles').select('*');
+            if (data) setProfiles(data);
+        };
+        fetchUsers();
+    }, []);
 
-    /* ===== UPDATE CHAPTER ===== */
-    const updateChapter = (
-        index: number,
-        field: "title" | "content",
-        value: string
-    ) => {
-        const updated = [...chapters];
-        updated[index][field] = value;
-        setChapters(updated);
-    };
-
-    /* ===== SAVE ===== */
-    const handleSave = async () => {
-        if (!title.trim()) {
-            alert("Title is required");
+    const handlePublish = async () => {
+        if (!title || !file) {
+            alert("Please provide both a title and an EPUB file.");
             return;
         }
 
         setLoading(true);
 
         try {
-            // 1️⃣ CREATE STORY
-            const story = await createStory({
-                title,
-                description,
-                type,
-                user_id: profileId,
-            });
+            // 1. Upload EPUB to Supabase Storage
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Math.random()}.${fileExt}`;
+            const { data: storageData, error: storageError } = await supabase.storage
+                .from('epubs')
+                .upload(fileName, file);
 
-            // 2️⃣ CREATE CHAPTERS
-            for (const ch of chapters) {
-                await createChapter({
-                    story_id: story.id,
-                    chapter_number: ch.chapter_number,
-                    title: ch.title,
-                    content: ch.content, // HTML supported
-                });
-            }
+            if (storageError) throw storageError;
 
-            navigate(`/story/${story.id}`);
-        } catch (err) {
-            console.error(err);
-            alert("Failed to create story");
+            // 2. Save Story Info to Database
+            const { error: dbError } = await supabase
+                .from('stories')
+                .insert([{
+                    title: title,
+                    file_url: storageData.path,
+                    author: 'Babysterek'
+                }]);
+
+            if (dbError) throw dbError;
+
+            alert("🎉 Story successfully published to the Vault!");
+            setTitle('');
+            setFile(null);
+        } catch (error: any) {
+            alert(error.message);
+        } finally {
+            setLoading(false);
         }
+    };
 
-        setLoading(false);
+    const revokeAccess = async (id: string) => {
+        await supabase.from('profiles').delete().eq('id', id);
+        setProfiles(profiles.filter(p => p.id !== id));
     };
 
     return (
-        <div className="new-story">
+        <div style={{ padding: '40px', background: '#F2B29A', minHeight: '100vh' }}>
+            <Link to="/" style={{ color: '#3E2723', textDecoration: 'none' }}>← Exit Command Center</Link>
 
-            {/* HEADER */}
-            <h1>Create New Story</h1>
-
-            {/* STORY INFO */}
-            <input
-                className="input"
-                placeholder="Story Title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-            />
-
-            <textarea
-                className="input"
-                placeholder="Description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-            />
-
-            <select
-                className="input"
-                value={type}
-                onChange={(e) => setType(e.target.value as any)}
-            >
-                <option value="fanfiction">Fanfiction</option>
-                <option value="drabble">Drabble</option>
-            </select>
-
-            {/* CHAPTERS */}
-            <h2>Chapters</h2>
-
-            {chapters.map((ch, i) => (
-                <div key={i} className="chapter-box">
-
-                    <h3>Chapter {ch.chapter_number}</h3>
-
+            {/* PUBLISH SECTION */}
+            <div className="vault-card" style={{ margin: '40px auto', width: '550px', background: 'white' }}>
+                <h2 style={{ fontFamily: 'serif' }}>ADMIN: POST NEW WORK</h2>
+                <input
+                    placeholder="STORY TITLE"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    style={{ border: '1px solid #3E2723', padding: '10px', marginBottom: '20px' }}
+                />
+                <div style={{ margin: '20px 0', textAlign: 'left' }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 'bold' }}>SOURCE FILE (EPUB)</label>
                     <input
-                        className="input"
-                        placeholder="Chapter Title"
-                        value={ch.title}
-                        onChange={(e) =>
-                            updateChapter(i, "title", e.target.value)
-                        }
+                        type="file"
+                        accept=".epub"
+                        onChange={(e) => setFile(e.target.files?.[0] || null)}
+                        style={{ border: 'none', marginTop: '10px' }}
                     />
-
-                    <textarea
-                        className="editor"
-                        placeholder="Write HTML content here..."
-                        value={ch.content}
-                        onChange={(e) =>
-                            updateChapter(i, "content", e.target.value)
-                        }
-                    />
-
                 </div>
-            ))}
+                <button
+                    onClick={handlePublish}
+                    disabled={loading}
+                    style={{ width: '100%', opacity: loading ? 0.5 : 1 }}
+                >
+                    {loading ? 'ARCHIVING...' : 'PUBLISH TO ARCHIVE'}
+                </button>
+            </div>
 
-            <button className="secondary" onClick={addChapter}>
-                + Add Chapter
-            </button>
-
-            {/* SAVE */}
-            <button
-                className="primary"
-                onClick={handleSave}
-                disabled={loading}
-            >
-                {loading ? "Saving..." : "Publish Story"}
-            </button>
-
+            {/* USER MANAGEMENT SECTION */}
+            <div style={{ maxWidth: '800px', margin: 'auto', background: 'white', padding: '20px', border: '1px solid #3E2723' }}>
+                <h3 style={{ margin: 0 }}>USER MANAGEMENT</h3>
+                <p style={{ fontSize: '0.8rem', color: '#666' }}>View and manage site access for pseudonyms.</p>
+                <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+                    <thead>
+                        <tr style={{ borderBottom: '2px solid #3E2723', textAlign: 'left' }}>
+                            <th style={{ padding: '10px' }}>Pseudonym</th>
+                            <th style={{ padding: '10px' }}>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {profiles.map(p => (
+                            <tr key={p.id} style={{ borderBottom: '1px solid #eee' }}>
+                                <td style={{ padding: '10px' }}>{p.username}</td>
+                                <td style={{ padding: '10px' }}>
+                                    {p.username !== 'Babysterek' && (
+                                        <button
+                                            onClick={() => revokeAccess(p.id)}
+                                            style={{ background: 'red', fontSize: '0.6rem', padding: '5px 10px' }}
+                                        >
+                                            REVOKE ACCESS
+                                        </button>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }

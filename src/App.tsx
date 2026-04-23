@@ -1,119 +1,60 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Gatekeeper from './components/Gatekeeper';
+import Home from './pages/Home';
+import Reader from './pages/Reader';
+import NewStory from './pages/NewStory';
+import MyStories from './pages/MyStories';
+import AdminPortal from './pages/AdminPortal'; // Added this import
+import './App.css';
 
-/* ===== PAGES ===== */
-import PreHome from "./pages/PreHome";
-import UserLogin from "./pages/UserLogin";
-import AdminLogin from "./pages/AdminLogin";
+function App() {
+  const [user, setUser] = useState<any>(null);
 
-import CreateProfile from "./pages/CreateProfile";
-import Home from "./pages/Home";
-import MyStories from "./pages/MyStories";
-import Bookmarks from "./pages/Bookmarks";
-import NewStory from "./pages/NewStory";
-import Reader from "./pages/Reader";
-import AdminPortal from "./pages/AdminPortal";
-
-/* ===== COMPONENTS ===== */
-import Layout from "./components/Layout";
-import Gatekeeper from "./components/Gatekeeper";
-
-/* ===== WRAPPER ===== */
-const WithLayout = ({ children }: any) => {
-  return <Layout>{children}</Layout>;
-};
-
-export default function App() {
   return (
-    <Routes>
+    <Router>
+      <div className="app-container">
+        <Routes>
+          {/* TIER 1: The 'halefire' Gate */}
+          <Route
+            path="/entry"
+            element={!user ? <Gatekeeper setUser={setUser} /> : <Navigate to="/" />}
+          />
 
-      {/* ===== ENTRY ===== */}
-      <Route path="/" element={<PreHome />} />
-      <Route path="/login" element={<UserLogin />} />
-      <Route path="/admin-login" element={<AdminLogin />} />
+          {/* HOME ARCHIVE */}
+          <Route
+            path="/"
+            element={user ? <Home user={user} /> : <Navigate to="/entry" />}
+          />
 
-      {/* ===== PROFILE ===== */}
-      <Route
-        path="/create-profile"
-        element={
-          <Gatekeeper>
-            <CreateProfile />
-          </Gatekeeper>
-        }
-      />
+          {/* READER */}
+          <Route
+            path="/read/:id"
+            element={user ? <Reader user={user} /> : <Navigate to="/entry" />}
+          />
 
-      {/* ===== HOME ===== */}
-      <Route
-        path="/home"
-        element={
-          <Gatekeeper requireProfile>
-            <WithLayout>
-              <Home />
-            </WithLayout>
-          </Gatekeeper>
-        }
-      />
+          {/* TIER 2: ADMIN ONLY (NewStory & Portal) */}
+          <Route
+            path="/post-work"
+            element={user?.isAdmin ? <NewStory /> : <Navigate to="/" />}
+          />
 
-      {/* ===== MY STORIES ===== */}
-      <Route
-        path="/my-stories"
-        element={
-          <Gatekeeper requireProfile>
-            <WithLayout>
-              <MyStories />
-            </WithLayout>
-          </Gatekeeper>
-        }
-      />
+          <Route
+            path="/admin-portal"
+            element={user?.isAdmin ? <AdminPortal /> : <Navigate to="/" />}
+          />
 
-      {/* ===== BOOKMARKS ===== */}
-      <Route
-        path="/bookmarks"
-        element={
-          <Gatekeeper requireProfile>
-            <WithLayout>
-              <Bookmarks />
-            </WithLayout>
-          </Gatekeeper>
-        }
-      />
+          {/* BOOKMARKS */}
+          <Route
+            path="/my-stories"
+            element={user ? <MyStories user={user} /> : <Navigate to="/entry" />}
+          />
 
-      {/* ===== ADMIN PANEL ===== */}
-      <Route
-        path="/admin"
-        element={
-          <Gatekeeper requireAdmin>
-            <WithLayout>
-              <AdminPortal />
-            </WithLayout>
-          </Gatekeeper>
-        }
-      />
-
-      {/* ===== NEW STORY (ADMIN ONLY) ===== */}
-      <Route
-        path="/new"
-        element={
-          <Gatekeeper requireAdmin>
-            <WithLayout>
-              <NewStory />
-            </WithLayout>
-          </Gatekeeper>
-        }
-      />
-
-      {/* ===== READER (NO LAYOUT — IMMERSIVE) ===== */}
-      <Route
-        path="/story/:id"
-        element={
-          <Gatekeeper>
-            <Reader />
-          </Gatekeeper>
-        }
-      />
-
-      {/* ===== FALLBACK ===== */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-
-    </Routes>
+          <Route path="*" element={<Navigate to="/entry" />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
+
+export default App;

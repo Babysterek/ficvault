@@ -1,113 +1,55 @@
-/* ===== LAYOUT ===== */
-.admin-container {
-  padding: 24px;
-  color: #e5e7eb;
+:root {
+  --peach: #F2B29A;
+  --dark-brown: #3E2723;
 }
 
-.admin-header {
+body {
+  background-color: var(--peach);
+  color: var(--dark-brown);
+  font-family: 'Georgia', serif;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Base Vault Card */
+.vault-card {
+  background: white;
+  padding: 40px;
+  border: 1px solid var(--dark-brown);
+  box-shadow: 10px 10px 0px var(--dark-brown);
+  width: 90%;
+  /* Responsive width */
+  max-width: 400px;
+  /* Limits size on desktop */
+  text-align: center;
+  margin: 20px auto;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 600px) {
+  .vault-card {
+    padding: 20px;
+    /* Smaller padding on phones */
+    box-shadow: 5px 5px 0px var(--dark-brown);
+    /* Smaller shadow */
+  }
+
+  h1,
+  h2 {
+    font-size: 1.5rem;
+    /* Scale down titles */
+  }
+
+  input {
+    font-size: 16px;
+    /* Prevents iOS from zooming in on inputs */
+  }
+}
+
+/* AO3 Style Feed Adjustments */
+.story-feed-container {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.admin-title {
-  font-size: 28px;
-  font-weight: 600;
-}
-
-.admin-actions {
-  display: flex;
-  gap: 10px;
-}
-
-/* ===== BUTTONS ===== */
-.btn {
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  transition: 0.2s ease;
-}
-
-.btn-primary {
-  background: #7c3aed;
-  color: white;
-}
-
-.btn-primary:hover {
-  background: #6d28d9;
-}
-
-.btn-danger {
-  background: #ef4444;
-  color: white;
-}
-
-.btn-danger:hover {
-  background: #dc2626;
-}
-
-.btn-secondary {
-  background: #374151;
-  color: #e5e7eb;
-}
-
-/* ===== STORY CARD ===== */
-.admin-card {
-  background: #1e293b;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
-
-.admin-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.admin-card-title {
-  font-size: 18px;
-  font-weight: 500;
-}
-
-.admin-card-meta {
-  font-size: 12px;
-  color: #9ca3af;
-}
-
-/* ===== CHAPTER LIST ===== */
-.chapter-list {
-  margin-top: 12px;
-  padding-left: 10px;
-}
-
-.chapter-item {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 14px;
-}
-
-/* ===== FORM ===== */
-.admin-form {
-  background: #111827;
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-}
-
-.admin-form input,
-.admin-form textarea,
-.admin-form select {
-  width: 100%;
-  margin-bottom: 10px;
+  flex-direction: column;
+  gap: 20px;
   padding: 10px;
-  border-radius: 8px;
-  border: none;
-  background: #1f2937;
-  color: white;
 }

@@ -1,148 +1,44 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import {
-    getStoryById,
-    getChapters,
-    addBookmark,
-    removeBookmark,
-    getBookmarks,
-} from "../api";
-import "./Reader.css";
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
-export default function Reader() {
-    const { id } = useParams();
-
-    const [story, setStory] = useState<any>(null);
-    const [chapters, setChapters] = useState<any[]>([]);
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [isBookmarked, setIsBookmarked] = useState(false);
-
-    const profileId = localStorage.getItem("profile_id");
-
-    /* ================= FETCH ================= */
-    useEffect(() => {
-        if (!id) return;
-        fetchData();
-    }, [id]);
-
-    const fetchData = async () => {
-        try {
-            const storyData = await getStoryById(id!);
-            const chapterData = await getChapters(id!);
-
-            setStory(storyData);
-            setChapters(chapterData || []);
-
-            // check bookmark
-            if (profileId) {
-                const bookmarks = await getBookmarks(profileId);
-                const found = bookmarks?.find((b: any) => b.story_id === id);
-                setIsBookmarked(!!found);
-            }
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    /* ================= NAVIGATION ================= */
-    const nextChapter = () => {
-        if (currentIndex < chapters.length - 1) {
-            setCurrentIndex((prev) => prev + 1);
-            window.scrollTo(0, 0);
-        }
-    };
-
-    const prevChapter = () => {
-        if (currentIndex > 0) {
-            setCurrentIndex((prev) => prev - 1);
-            window.scrollTo(0, 0);
-        }
-    };
-
-    /* ================= BOOKMARK ================= */
-    const toggleBookmark = async () => {
-        if (!profileId || !id) return;
-
-        try {
-            if (isBookmarked) {
-                await removeBookmark(profileId, id);
-                setIsBookmarked(false);
-            } else {
-                await addBookmark(profileId, id);
-                setIsBookmarked(true);
-            }
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    /* ================= UI ================= */
-
-    if (!story) return <div className="reader-empty">Loading...</div>;
-    if (chapters.length === 0)
-        return <div className="reader-empty">No chapters yet.</div>;
-
-    const currentChapter = chapters[currentIndex];
+export default function Reader({ user }: any) {
+    const [comments, setComments] = useState([
+        { id: 1, author: 'Anonymous', text: 'This was a beautiful read!' }
+    ]);
 
     return (
-        <div className="reader-layout">
+        <div style={{ background: 'white', minHeight: '100vh', padding: '40px' }}>
+            <div style={{ maxWidth: '800px', margin: 'auto' }}>
+                <Link to="/" style={{ color: 'var(--dark-brown)', fontSize: '0.8rem' }}>← BACK TO ARCHIVE</Link>
 
-            {/* ===== LEFT SIDEBAR ===== */}
-            <aside className="chapter-sidebar">
-                {chapters.map((ch, i) => (
-                    <div
-                        key={ch.id}
-                        className={`chapter-item ${i === currentIndex ? "active" : ""}`}
-                        onClick={() => setCurrentIndex(i)}
-                    >
-                        Chapter {ch.chapter_number}
-                    </div>
-                ))}
-            </aside>
-
-            {/* ===== MAIN READER ===== */}
-            <div className="reader-main">
-
-                <div className="reader-card">
-
-                    {/* HEADER */}
-                    <h1>{story.title}</h1>
-
-                    <div className="reader-meta">
-                        <span>by {story.author || "Unknown"}</span>
-                        <span>{story.type}</span>
-                    </div>
-
-                    <button className="primary" onClick={toggleBookmark}>
-                        {isBookmarked ? "Remove Bookmark" : "Add Bookmark"}
-                    </button>
-
-                    {/* CHAPTER */}
-                    <div className="chapter-header">
-                        Chapter {currentChapter.chapter_number} / {chapters.length}
-                    </div>
-
-                    {/* CONTENT */}
-                    <div
-                        className="story-content"
-                        dangerouslySetInnerHTML={{ __html: currentChapter.content }}
-                    />
-
-                    {/* NAVIGATION */}
-                    <div className="reader-controls">
-                        <button onClick={prevChapter} disabled={currentIndex === 0}>
-                            ← Previous
-                        </button>
-
-                        <button
-                            onClick={nextChapter}
-                            disabled={currentIndex === chapters.length - 1}
-                        >
-                            Next →
-                        </button>
-                    </div>
-
+                {/* AO3 Metadata Block */}
+                <div style={{ border: '1px solid var(--dark-brown)', padding: '20px', background: 'var(--peach-coral)', margin: '40px 0' }}>
+                    <dl style={{ display: 'grid', gridTemplateColumns: '150px 1fr', margin: 0 }}>
+                        <dt><strong>Rating:</strong></dt><dd>General Audiences</dd>
+                        <dt><strong>Category:</strong></dt><dd>Gen</dd>
+                        <dt><strong>Fandom:</strong></dt><dd>Original Work</dd>
+                    </dl>
                 </div>
+
+                <article style={{ fontSize: '1.2rem', lineHeight: '1.8', fontFamily: 'serif' }}>
+                    <h2>Work Title</h2>
+                    <p>The literary content of the vault appears here, distraction-free and elegant...</p>
+                </article>
+
+                {/* Comment Section */}
+                <section style={{ marginTop: '80px', borderTop: '2px solid var(--dark-brown)', paddingTop: '20px' }}>
+                    <h3>Comments</h3>
+                    {comments.map(c => (
+                        <div key={c.id} style={{ padding: '15px', borderBottom: '1px solid #eee' }}>
+                            <strong>{c.author}</strong>: {c.text}
+                            {user.isAdmin && (
+                                <button onClick={() => setComments([])} style={{ background: 'none', color: 'red', border: 'none', padding: 0, marginLeft: '15px', cursor: 'pointer', fontSize: '0.7rem' }}>
+                                    [DELETE COMMENT]
+                                </button>
+                            )}
+                        </div>
+                    ))}
+                </section>
             </div>
         </div>
     );
