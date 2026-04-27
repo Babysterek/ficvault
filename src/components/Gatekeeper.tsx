@@ -9,14 +9,14 @@ const Gatekeeper = ({ setUser }: any) => {
     const checkCode = (e: any) => {
         const val = e.target.value;
         setInviteCode(val);
-        // FIRST GATE: halefire
+        // GATE 1: The secret invitation code
         if (val.toLowerCase() === "halefire") {
             setIsUnlocked(true);
         }
     };
 
     const handleAccess = () => {
-        // SECOND GATE: Babysterek + ammuisfine
+        // GATE 2: Admin credentials check
         const isAdmin = pseudo === 'Babysterek' && adminKey === 'ammuisfine';
 
         if (isUnlocked) {
@@ -25,7 +25,7 @@ const Gatekeeper = ({ setUser }: any) => {
                 isAdmin: isAdmin
             });
         } else {
-            alert("Please enter the correct invitation code first.");
+            alert("Access Denied: Invalid invitation code.");
         }
     };
 
@@ -37,7 +37,8 @@ const Gatekeeper = ({ setUser }: any) => {
                 <div style={{ textAlign: 'left', marginBottom: '15px' }}>
                     <label style={{ fontSize: '0.7rem', fontWeight: 'bold' }}>STEP 1: INVITATION CODE</label>
                     <input
-                        placeholder="Type 'halefire' here..."
+                        type="password"
+                        placeholder="••••••••"
                         onChange={checkCode}
                         style={{ width: '100%', padding: '10px', border: 'none', borderBottom: '2px solid #3E2723', outline: 'none' }}
                     />
@@ -48,19 +49,19 @@ const Gatekeeper = ({ setUser }: any) => {
                         <div style={{ textAlign: 'left', marginBottom: '15px' }}>
                             <label style={{ fontSize: '0.7rem', fontWeight: 'bold' }}>STEP 2: PSEUDONYM</label>
                             <input
-                                placeholder="Your Name (e.g. Babysterek)"
+                                placeholder="Enter your name..."
                                 onChange={(e) => setPseudo(e.target.value)}
                                 style={{ width: '100%', padding: '10px', border: 'none', borderBottom: '2px solid #3E2723', outline: 'none' }}
                             />
                         </div>
 
-                        {/* ONLY SHOWS IF NAME IS BABYSTEREK */}
+                        {/* ADMIN PASSWORD BOX: Only appears if the name is Babysterek */}
                         {pseudo === 'Babysterek' && (
                             <div style={{ textAlign: 'left', marginBottom: '15px' }}>
-                                <label style={{ fontSize: '0.7rem', fontWeight: 'bold', color: 'red' }}>STEP 3: ADMIN PASSWORD</label>
+                                <label style={{ fontSize: '0.7rem', fontWeight: 'bold', color: 'red' }}>STEP 3: MASTER KEY</label>
                                 <input
                                     type="password"
-                                    placeholder="Type 'ammuisfine' here..."
+                                    placeholder="••••••••"
                                     onChange={(e) => setAdminKey(e.target.value)}
                                     style={{ width: '100%', padding: '10px', border: 'none', borderBottom: '2px solid red', outline: 'none' }}
                                 />
@@ -68,7 +69,7 @@ const Gatekeeper = ({ setUser }: any) => {
                         )}
 
                         <button onClick={handleAccess} style={{ width: '100%', marginTop: '20px', background: '#3E2723', color: 'white', padding: '12px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
-                            {pseudo === 'Babysterek' ? 'UNLOCK ADMIN VAULT' : 'ENTER ARCHIVE'}
+                            {pseudo === 'Babysterek' ? 'UNLOCK MASTER VAULT' : 'ENTER ARCHIVE'}
                         </button>
                     </div>
                 )}
