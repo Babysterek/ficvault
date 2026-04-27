@@ -1,5 +1,5 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
+
 export default function MyStories({ user }: any) {
     return (
         <div style={{ padding: '40px', maxWidth: '800px', margin: 'auto' }}>
