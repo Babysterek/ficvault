@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const Gatekeeper = ({ setUser }: any) => {
-    const [inviteCode, setInviteCode] = useState('');
+    const [_inviteCode, setInviteCode] = useState('');
     const [pseudo, setPseudo] = useState('');
     const [adminKey, setAdminKey] = useState('');
     const [isUnlocked, setIsUnlocked] = useState(false);
 
-    const checkCode = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checkCode = (e: any) => {
         const val = e.target.value;
         setInviteCode(val);
         // FIRST GATE: halefire
