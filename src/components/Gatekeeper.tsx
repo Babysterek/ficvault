@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 const Gatekeeper = ({ setUser }: any) => {
-    const [_inviteCode, setInviteCode] = useState('');
+    const [inviteCode, setInviteCode] = useState('');
     const [pseudo, setPseudo] = useState('');
     const [adminKey, setAdminKey] = useState('');
     const [isUnlocked, setIsUnlocked] = useState(false);
@@ -20,10 +20,16 @@ const Gatekeeper = ({ setUser }: any) => {
         const isAdmin = pseudo === 'Babysterek' && adminKey === 'ammuisfine';
 
         if (isUnlocked) {
-            setUser({
+            const userData = {
                 pseudo: pseudo || 'Anonymous',
                 isAdmin: isAdmin
-            });
+            };
+
+            // 🌟 SAVE TO MEMORY: This tells the computer to remember you
+            localStorage.setItem('ficvault_user', JSON.stringify(userData));
+
+            // Update the app state
+            setUser(userData);
         } else {
             alert("Access Denied: Invalid invitation code.");
         }
@@ -39,6 +45,7 @@ const Gatekeeper = ({ setUser }: any) => {
                     <input
                         type="password"
                         placeholder="••••••••"
+                        value={inviteCode}
                         onChange={checkCode}
                         style={{ width: '100%', padding: '10px', border: 'none', borderBottom: '2px solid #3E2723', outline: 'none' }}
                     />
@@ -55,7 +62,6 @@ const Gatekeeper = ({ setUser }: any) => {
                             />
                         </div>
 
-                        {/* ADMIN PASSWORD BOX: Only appears if the name is Babysterek */}
                         {pseudo === 'Babysterek' && (
                             <div style={{ textAlign: 'left', marginBottom: '15px' }}>
                                 <label style={{ fontSize: '0.7rem', fontWeight: 'bold', color: 'red' }}>STEP 3: MASTER KEY</label>
