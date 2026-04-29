@@ -15,7 +15,7 @@ export default function NewStory() {
     const [skin, setSkin] = useState('');
     const [content, setContent] = useState('');
 
-    const handlePost = async () => {
+    const handlePost = async (status: 'published' | 'draft') => {
         const finalContent = editMode === 'rich' ? editorRef.current?.getContent() : content;
         if (!title || !finalContent) return alert("Title and Content are required!");
 
@@ -23,7 +23,13 @@ export default function NewStory() {
         try {
             const { data: storyData, error: storyError } = await supabase
                 .from('stories')
-                .insert([{ title, summary, work_skin: skin, author: 'Babysterek' }])
+                .insert([{
+                    title,
+                    summary,
+                    work_skin: skin,
+                    author: 'Babysterek',
+                    status: status
+                }])
                 .select().single();
 
             if (storyError) throw storyError;
@@ -35,6 +41,7 @@ export default function NewStory() {
                 title: 'Chapter 1'
             }]);
 
+            alert(status === 'draft' ? "Saved to Drafts!" : "Published to Vault!");
             navigate('/archive');
         } catch (err: any) { alert(err.message); } finally { setLoading(false); }
     };
@@ -50,7 +57,6 @@ export default function NewStory() {
                     <textarea placeholder="Summary" value={summary} onChange={(e) => setSummary(e.target.value)} style={{ height: '60px', padding: '10px' }} />
                 </div>
 
-                {/* 🔄 RICH TEXT / HTML TOGGLE */}
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '5px', marginTop: '20px' }}>
                     <button onClick={() => setEditMode('rich')} style={{ padding: '5px 15px', background: editMode === 'rich' ? '#3E2723' : '#ccc', color: editMode === 'rich' ? 'white' : 'black' }}>Rich Text</button>
                     <button onClick={() => setEditMode('html')} style={{ padding: '5px 15px', background: editMode === 'html' ? '#3E2723' : '#ccc', color: editMode === 'html' ? 'white' : 'black' }}>HTML</button>
@@ -67,7 +73,6 @@ export default function NewStory() {
                                 menubar: false,
                                 plugins: ['advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview', 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen', 'insertdatetime', 'media', 'table', 'wordcount', 'hr', 'paste'],
                                 toolbar: 'blocks fontfamily | paste | bold italic underline strikethrough | bullist numlist | alignleft aligncenter alignright | link image | blockquote hr | undo redo | code',
-                                font_family_formats: 'Arial=arial,helvetica; Georgia=georgia,palatino; Times New Roman=times new roman,times; Courier New=courier new,courier;',
                                 image_dimensions: true,
                             }}
                         />
@@ -80,9 +85,14 @@ export default function NewStory() {
                     )}
                 </div>
 
-                <button onClick={handlePost} disabled={loading} style={{ background: '#3E2723', color: 'white', padding: '15px 40px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>
-                    {loading ? "POSTING..." : "POST TO VAULT"}
-                </button>
+                <div style={{ marginTop: '20px', display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                    <button onClick={() => handlePost('draft')} disabled={loading} style={{ background: '#ccc', padding: '10px 20px', border: 'none', cursor: 'pointer' }}>
+                        SAVE AS DRAFT
+                    </button>
+                    <button onClick={() => handlePost('published')} disabled={loading} style={{ background: '#3E2723', color: 'white', padding: '10px 30px', border: 'none', cursor: 'pointer' }}>
+                        {loading ? "POSTING..." : "POST TO VAULT"}
+                    </button>
+                </div>
             </div>
         </div>
     );
