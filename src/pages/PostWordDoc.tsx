@@ -17,12 +17,17 @@ export default function PostWordDoc() {
 
             const { data: storyData } = await supabase.from('stories').insert([{ title, author: 'Babysterek' }]).select().single();
             if (storyData) {
-                // Splits by "Chapter" and ignores short snippets (like Table of Contents)
+                // Splits text every time it sees "Chapter" followed by a number
                 const parts = html.split(/Chapter\s+\d+/i).filter(p => p.length > 500);
                 for (let i = 0; i < parts.length; i++) {
-                    await supabase.from('chapters').insert([{ story_id: storyData.id, chapter_number: i + 1, content: parts[i], title: `Chapter ${i + 1}` }]);
+                    await supabase.from('chapters').insert([{
+                        story_id: storyData.id,
+                        chapter_number: i + 1,
+                        content: parts[i],
+                        title: `Chapter ${i + 1}`
+                    }]);
                 }
-                alert("✨ Successfully split and archived " + parts.length + " chapters.");
+                alert("✨ Archive Complete! Split " + parts.length + " chapters.");
             }
             setLoading(false);
         };
@@ -32,12 +37,10 @@ export default function PostWordDoc() {
     return (
         <div style={{ padding: '40px', background: '#F2B29A', minHeight: '100vh' }}>
             <div style={{ background: 'white', padding: '40px', maxWidth: '600px', margin: 'auto', border: '2px solid #3E2723' }}>
-                <h2>VAULT: AUTO-IMPORT</h2>
-                <p>I will automatically detect the title and split the 14 chapters from your .docx file.</p>
-                <label style={{ display: 'block', padding: '30px', border: '2px dashed #3E2723', cursor: 'pointer', textAlign: 'center' }}>
-                    {loading ? "DECRYPTING..." : "UPLOAD WORD FILE"}
-                    <input type="file" accept=".docx" onChange={handleFile} style={{ display: 'none' }} />
-                </label>
+                <h2>WORD AUTO-IMPORT</h2>
+                <p>I will detect the title and split the chapters automatically.</p>
+                <input type="file" accept=".docx" onChange={handleFile} disabled={loading} />
+                {loading && <p style={{ color: 'red', fontWeight: 'bold' }}>ARCHIVING...</p>}
             </div>
         </div>
     );

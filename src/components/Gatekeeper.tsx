@@ -2,45 +2,40 @@ import { useState } from 'react';
 import { supabase } from '../supabase';
 
 export default function Gatekeeper({ setUser }: any) {
-    const [isLogin, setIsLogin] = useState(true);
-    const [otp, setOtp] = useState('');
-    const [email, setEmail] = useState('');
+    const [userId, setUserId] = useState('');
     const [password, setPassword] = useState('');
-    const [pseudo, setPseudo] = useState('');
+    const [guestCode, setGuestCode] = useState('');
 
-    const handleAuth = async () => {
-        if (isLogin) {
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) return alert("Access Denied: Invalid Credentials");
-            setUser({ ...data.user, pseudo: data.user?.user_metadata?.pseudo });
+    const handleAdminAuth = () => {
+        if (userId === 'Babysterek' && password === 'ammuisfine') {
+            setUser({ id: 'admin_1', pseudo: 'Babysterek', isAdmin: true });
         } else {
-            const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { pseudo } } });
-            if (error) return alert(error.message);
-            alert("Verification email sent!");
+            alert("🔒 Invalid Credentials");
         }
     };
 
     const enterAsGuest = async () => {
-        const { data } = await supabase.from('vault_access').select('*').eq('otp_code', otp).eq('is_used', false).single();
-        if (data) setUser({ id: 'guest', pseudo: 'Guest Visitor', isAdmin: false });
-        else alert("🔒 Invalid or expired OTP.");
+        const { data } = await supabase.from('vault_access').select('*').eq('otp_code', guestCode).single();
+        if (data) {
+            setUser({ id: 'guest', pseudo: 'Guest Visitor', isAdmin: false });
+        } else {
+            alert("🔒 Invalid Guest Password");
+        }
     };
 
     return (
         <div style={{ background: '#F2B29A', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ background: 'white', padding: '40px', border: '2px solid #3E2723', width: '350px', boxShadow: '10px 10px 0 #3E2723' }}>
-                <h2 style={{ fontFamily: 'serif' }}>{isLogin ? 'MEMBER LOGIN' : 'CREATE ID'}</h2>
-                {!isLogin && <input placeholder="Pseudo" onChange={e => setPseudo(e.target.value)} style={inputStyle} />}
-                <input placeholder="Email" onChange={e => setEmail(e.target.value)} style={inputStyle} />
-                <input type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} style={inputStyle} />
-                <button onClick={handleAuth} style={btnStyle}>{isLogin ? 'ENTER' : 'REGISTER'}</button>
-                <p onClick={() => setIsLogin(!isLogin)} style={{ cursor: 'pointer', fontSize: '0.7rem', marginTop: '10px' }}>
-                    {isLogin ? "New here? Register Account" : "Return to Login"}
-                </p>
-                <div style={{ borderTop: '1px solid #ddd', marginTop: '20px', paddingTop: '20px' }}>
-                    <p style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>GUEST ENTRY (OTP)</p>
-                    <input placeholder="6-Digit Code" onChange={e => setOtp(e.target.value)} style={inputStyle} />
-                    <button onClick={enterAsGuest} style={{ ...btnStyle, background: '#5D4037' }}>ACCESS AS GUEST</button>
+                <h2 style={{ fontFamily: 'serif' }}>VAULT ENTRY</h2>
+                <div style={{ marginBottom: '30px' }}>
+                    <input placeholder="USER ID" onChange={e => setUserId(e.target.value)} style={inputStyle} />
+                    <input type="password" placeholder="PASSWORD" onChange={e => setPassword(e.target.value)} style={inputStyle} />
+                    <button onClick={handleAdminAuth} style={btnStyle}>LOGIN</button>
+                </div>
+                <div style={{ borderTop: '2px solid #eee', paddingTop: '20px' }}>
+                    <p style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>GUEST ACCESS</p>
+                    <input placeholder="GUEST PASSWORD" onChange={e => setGuestCode(e.target.value)} style={inputStyle} />
+                    <button onClick={enterAsGuest} style={{ ...btnStyle, background: '#5D4037' }}>ENTER</button>
                 </div>
             </div>
         </div>
