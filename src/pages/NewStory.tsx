@@ -39,54 +39,73 @@ export default function NewStory() {
                 .insert([{ story_id: storyData.id, chapter_number: 1, content: content, title: 'Chapter 1' }]);
 
             if (chapError) throw chapError;
+            alert("✨ Success!");
             navigate('/archive');
-        } catch (err: any) { alert(err.message); } finally { setLoading(false); }
+        } catch (err: any) {
+            alert(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
-        <div style={{ background: '#eee', minHeight: '100vh', padding: '20px', textAlign: 'left', fontFamily: 'sans-serif' }}>
-            <div style={{ maxWidth: '900px', margin: 'auto', background: 'white', border: '1px solid #ccc', padding: '20px' }}>
+        <div style={{ background: '#eee', minHeight: '100vh', padding: '20px', textAlign: 'left', color: '#000' }}>
+            <div style={{ maxWidth: '900px', margin: 'auto', background: 'white', border: '1px solid #ccc', padding: '20px', boxShadow: '2px 2px 5px rgba(0,0,0,0.1)' }}>
                 <h2 style={{ background: '#900', color: 'white', padding: '10px', margin: '-20px -20px 20px -20px' }}>Post New Work</h2>
 
-                <fieldset style={{ marginBottom: '20px' }}><legend>Preface</legend>
-                    <label>Rating: </label>
-                    <select value={rating} onChange={(e) => setRating(e.target.value)}>
-                        <option>Not Rated</option><option>General Audiences</option><option>Teen And Up Audiences</option><option>Mature</option><option>Explicit</option>
-                    </select>
-                    <label style={{ marginLeft: '20px' }}>Warnings: </label>
-                    <select value={warnings} onChange={(e) => setWarnings(e.target.value)}>
-                        <option>No Archive Warnings Apply</option><option>Graphic Depictions Of Violence</option><option>Major Character Death</option>
-                    </select>
-                </fieldset>
+                <div style={{ display: 'grid', gap: '15px' }}>
+                    <section>
+                        <label style={{ fontWeight: 'bold' }}>Rating:</label><br />
+                        <select value={rating} onChange={(e) => setRating(e.target.value)} style={{ width: '100%', padding: '5px' }}>
+                            <option>Not Rated</option><option>General Audiences</option><option>Teen And Up Audiences</option><option>Mature</option><option>Explicit</option>
+                        </select>
+                    </section>
 
-                <fieldset style={{ marginBottom: '20px' }}><legend>Tags</legend>
-                    <input style={{ width: '100%', marginBottom: '10px' }} placeholder="Fandoms" value={fandoms} onChange={(e) => setFandoms(e.target.value)} />
-                    <input style={{ width: '100%', marginBottom: '10px' }} placeholder="Relationships" value={relationships} onChange={(e) => setRelationships(e.target.value)} />
-                    <input style={{ width: '100%', marginBottom: '10px' }} placeholder="Characters" value={characters} onChange={(e) => setCharacters(e.target.value)} />
-                    <input style={{ width: '100%' }} placeholder="Additional Tags" value={tags} onChange={(e) => setTags(e.target.value)} />
-                </fieldset>
+                    <section>
+                        <label style={{ fontWeight: 'bold' }}>Fandoms:</label>
+                        <input style={{ width: '100%', padding: '8px' }} value={fandoms} onChange={(e) => setFandoms(e.target.value)} placeholder="e.g. Teen Wolf" />
+                    </section>
 
-                <fieldset style={{ marginBottom: '20px' }}><legend>Description</legend>
-                    <input style={{ width: '100%', fontSize: '1.2rem', marginBottom: '10px' }} placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-                    <textarea style={{ width: '100%', height: '60px' }} placeholder="Summary" value={summary} onChange={(e) => setSummary(e.target.value)} />
-                </fieldset>
+                    <section>
+                        <label style={{ fontWeight: 'bold' }}>Title:</label>
+                        <input style={{ width: '100%', padding: '8px', fontSize: '1.1rem' }} value={title} onChange={(e) => setTitle(e.target.value)} />
+                    </section>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '5px' }}>
-                    <button onClick={() => setEditMode('rich')} style={{ background: editMode === 'rich' ? '#ccc' : '#eee' }}>Rich Text</button>
-                    <button onClick={() => setEditMode('html')} style={{ background: editMode === 'html' ? '#ccc' : '#eee' }}>HTML</button>
+                    <section>
+                        <label style={{ fontWeight: 'bold' }}>Summary:</label>
+                        <textarea style={{ width: '100%', height: '60px', padding: '8px' }} value={summary} onChange={(e) => setSummary(e.target.value)} />
+                    </section>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
+                        <button onClick={() => setEditMode('rich')} style={{ padding: '5px 15px', background: editMode === 'rich' ? '#900' : '#ccc', color: editMode === 'rich' ? 'white' : 'black', border: 'none' }}>Rich Text</button>
+                        <button onClick={() => setEditMode('html')} style={{ padding: '5px 15px', background: editMode === 'html' ? '#900' : '#ccc', color: editMode === 'html' ? 'white' : 'black', border: 'none' }}>HTML</button>
+                    </div>
+
+                    <div style={{ background: 'white', color: 'black', border: '1px solid #ccc' }}>
+                        {editMode === 'rich' ? (
+                            <div className="quill-wrapper" style={{ height: '350px', marginBottom: '50px' }}>
+                                <ReactQuill theme="snow" value={content} onChange={setContent} style={{ height: '300px' }} />
+                            </div>
+                        ) : (
+                            <textarea
+                                style={{ width: '100%', height: '350px', padding: '10px', fontFamily: 'monospace', fontSize: '1rem' }}
+                                value={content}
+                                onChange={(e) => setContent(e.target.value)}
+                                placeholder="Paste your HTML here..."
+                            />
+                        )}
+                    </div>
                 </div>
 
-                <div style={{ minHeight: '350px', border: '1px solid #ccc', marginBottom: '20px' }}>
-                    {editMode === 'rich' ? (
-                        <ReactQuill theme="snow" value={content} onChange={setContent} style={{ height: '300px' }} />
-                    ) : (
-                        <textarea style={{ width: '100%', height: '300px', fontFamily: 'monospace' }} value={content} onChange={(e) => setContent(e.target.value)} />
-                    )}
+                <div style={{ marginTop: '30px', borderTop: '1px solid #ccc', paddingTop: '20px' }}>
+                    <button
+                        onClick={handlePost}
+                        disabled={loading}
+                        style={{ background: '#900', color: 'white', padding: '10px 40px', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem' }}
+                    >
+                        {loading ? "Posting..." : "Post"}
+                    </button>
                 </div>
-
-                <button onClick={handlePost} disabled={loading} style={{ background: '#900', color: 'white', padding: '10px 20px', fontWeight: 'bold' }}>
-                    {loading ? "Posting..." : "Post"}
-                </button>
             </div>
         </div>
     );
