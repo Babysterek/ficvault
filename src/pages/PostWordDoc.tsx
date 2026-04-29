@@ -9,15 +9,18 @@ export default function PostWordDoc() {
         const file = e.target.files[0];
         if (!file) return;
         setLoading(true);
+
         const reader = new FileReader();
         reader.onload = async (event: any) => {
             const result = await mammoth.convertToHtml({ arrayBuffer: event.target.result });
-            const html = result.value;
-            const title = file.name.replace('.docx', '');
+            let html = result.value;
 
+            // Auto-detect Title
+            const title = file.name.replace('.docx', '');
             const { data: storyData } = await supabase.from('stories').insert([{ title, author: 'Babysterek' }]).select().single();
+
             if (storyData) {
-                // Splits text every time it sees "Chapter" followed by a number
+                // Split by "Chapter X" - Smart Filter for 14+ chapters
                 const parts = html.split(/Chapter\s+\d+/i).filter(p => p.length > 500);
                 for (let i = 0; i < parts.length; i++) {
                     await supabase.from('chapters').insert([{
@@ -27,7 +30,7 @@ export default function PostWordDoc() {
                         title: `Chapter ${i + 1}`
                     }]);
                 }
-                alert("✨ Archive Complete! Split " + parts.length + " chapters.");
+                alert(`✨ Vault Updated: "${title}" created with ${parts.length} chapters!`);
             }
             setLoading(false);
         };
@@ -35,12 +38,11 @@ export default function PostWordDoc() {
     };
 
     return (
-        <div style={{ padding: '40px', background: '#F2B29A', minHeight: '100vh' }}>
+        <div style={{ padding: '50px', background: '#F2B29A', minHeight: '100vh' }}>
             <div style={{ background: 'white', padding: '40px', maxWidth: '600px', margin: 'auto', border: '2px solid #3E2723' }}>
-                <h2>WORD AUTO-IMPORT</h2>
-                <p>I will detect the title and split the chapters automatically.</p>
+                <h2>WORD AUTO-ARCHIVE</h2>
                 <input type="file" accept=".docx" onChange={handleFile} disabled={loading} />
-                {loading && <p style={{ color: 'red', fontWeight: 'bold' }}>ARCHIVING...</p>}
+                {loading && <p style={{ color: 'red' }}>DECRYPTING & SPLITTING...</p>}
             </div>
         </div>
     );
