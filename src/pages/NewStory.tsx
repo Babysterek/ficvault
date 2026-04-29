@@ -12,7 +12,7 @@ export default function NewStory() {
     const [title, setTitle] = useState('');
     const [fandoms, setFandoms] = useState('');
     const [summary, setSummary] = useState('');
-    const [skin, setSkin] = useState(''); // 🎨 Work Skin State
+    const [skin, setSkin] = useState('');
 
     const handlePost = async () => {
         const content = editorRef.current ? editorRef.current.getContent() : '';
@@ -26,7 +26,7 @@ export default function NewStory() {
                     title,
                     fandoms,
                     summary,
-                    work_skin: skin, // Saves the CSS skin
+                    work_skin: skin,
                     author: 'Babysterek'
                 }])
                 .select().single();
@@ -52,7 +52,6 @@ export default function NewStory() {
                 <div style={{ display: 'grid', gap: '15px', marginTop: '20px' }}>
                     <input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} style={{ padding: '10px' }} />
 
-                    {/* 🎨 WORK SKIN BOX */}
                     <div style={{ background: '#f9f9f9', padding: '10px', border: '1px solid #ccc' }}>
                         <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>WORK SKIN (CSS)</label>
                         <textarea
@@ -73,9 +72,8 @@ export default function NewStory() {
                         init={{
                             height: 500,
                             menubar: false,
-                            plugins: ['link', 'image', 'lists', 'code', 'hr', 'paste', 'wordcount'],
-                            // 🌟 MATCHES AO3 TOOLBAR IMAGE EXACTLY
-                            toolbar: 'paste | bold italic underline strikethrough | link unlink image | blockquote hr | undo redo | code',
+                            plugins: ['advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview', 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen', 'insertdatetime', 'media', 'table', 'wordcount', 'hr', 'paste'],
+                            toolbar: 'paste | bold italic underline strikethrough | bullist numlist | alignleft aligncenter alignright alignjustify | link unlink image | blockquote hr | undo redo | code',
                             image_dimensions: true,
                             image_title: true,
                             content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'

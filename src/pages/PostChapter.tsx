@@ -71,10 +71,11 @@ export default function PostChapter() {
                         init={{
                             height: 500,
                             menubar: false,
-                            plugins: ['link', 'image', 'lists', 'code', 'hr', 'paste'],
-                            toolbar: 'paste | bold italic underline strikethrough | link unlink image | blockquote hr | undo redo',
+                            plugins: ['advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview', 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen', 'insertdatetime', 'media', 'table', 'wordcount', 'hr', 'paste'],
+                            toolbar: 'paste | bold italic underline strikethrough | bullist numlist | alignleft aligncenter alignright alignjustify | link unlink image | blockquote hr | undo redo | code',
                             image_dimensions: true,
-                            image_title: true
+                            image_title: true,
+                            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
                         }}
                     />
                 </div>
