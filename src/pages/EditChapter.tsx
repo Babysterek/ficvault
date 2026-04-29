@@ -26,32 +26,32 @@ export default function EditChapter() {
     }, [id]);
 
     const handleUpdate = async () => {
-        // 1. Get content from current active mode
+        // 1. Sync and get final content
         const finalContent = editMode === 'rich' ? editorRef.current?.getContent() : htmlContent;
 
-        // 2. 🧠 Calculate Word Count (Strips HTML tags first)
+        // 2. 🧮 Auto Word Count (Strips HTML tags for accuracy)
         const plainText = finalContent.replace(/<[^>]*>/g, ' ');
-        const words = plainText.trim().split(/\s+/).filter((w: string | any[]) => w.length > 0).length;
+        const words = plainText.trim().split(/\s+/).filter((w: string) => w.length > 0).length;
 
-        // 3. Update Database (Marks as Published and saves Word Count)
+        // 3. Update Database (Saves content, count, and sets to LIVE)
         const { error } = await supabase
             .from('chapters')
             .update({
                 content: finalContent,
                 word_count: words,
-                is_published: true // 🌟 Making it live for the 1/15 count
+                is_published: true
             })
             .eq('id', id);
 
         if (error) {
             alert(error.message);
         } else {
-            alert(`✨ Chapter Saved! (${words} words)`);
+            alert(`✨ Chapter Saved! (${words.toLocaleString()} words added to total)`);
             navigate('/manage-stories');
         }
     };
 
-    if (loading) return <div style={{ padding: '50px', textAlign: 'center' }}>Decrypting...</div>;
+    if (loading) return <div style={{ padding: '50px', textAlign: 'center' }}>Accessing Vault Records...</div>;
 
     return (
         <div style={{ padding: '40px', background: '#F2B29A', minHeight: '100vh' }}>
@@ -60,11 +60,11 @@ export default function EditChapter() {
                 padding: '30px',
                 maxWidth: '1000px',
                 margin: 'auto',
-                border: '1px solid #3E2723',
+                border: '2px solid #3E2723',
                 boxShadow: '10px 10px 0px #3E2723'
             }}>
                 <h2 style={{ fontFamily: 'serif', borderBottom: '2px solid #3E2723', paddingBottom: '10px' }}>
-                    EDITING: {chapter?.stories?.title} - Ch {chapter?.chapter_number}
+                    EDITING: {chapter?.stories?.title} — Chapter {chapter?.chapter_number}
                 </h2>
 
                 {/* 🔄 MODE TOGGLE */}
@@ -84,7 +84,7 @@ export default function EditChapter() {
                     {editMode === 'rich' ? (
                         <Editor
                             apiKey="0dwpdw2m9932lqvdy75kj7fil1nrgcio3dk6ij0f74cemevw"
-                            onInit={(_evt: any, editor: any) => editorRef.current = editor}
+                            onInit={(evt: any, editor: any) => editorRef.current = editor}
                             initialValue={htmlContent}
                             init={{
                                 height: 600,
@@ -92,12 +92,13 @@ export default function EditChapter() {
                                 plugins: ['advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview', 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen', 'insertdatetime', 'media', 'table', 'wordcount', 'hr', 'paste'],
                                 toolbar: 'blocks | paste | bold italic underline strikethrough | bullist numlist | alignleft aligncenter alignright alignjustify | link unlink image | blockquote hr | undo redo | code',
                                 image_dimensions: true,
-                                image_title: true
+                                image_title: true,
+                                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
                             }}
                         />
                     ) : (
                         <textarea
-                            style={{ width: '100%', height: '600px', padding: '10px', fontFamily: 'monospace', border: 'none', boxSizing: 'border-box', fontSize: '14px' }}
+                            style={{ width: '100%', height: '600px', padding: '10px', fontFamily: 'monospace', border: 'none', boxSizing: 'border-box', fontSize: '14px', resize: 'vertical' }}
                             value={htmlContent}
                             onChange={(e) => setHtmlContent(e.target.value)}
                         />
