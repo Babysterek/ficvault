@@ -5,6 +5,8 @@ import { supabase } from '../supabase';
 import { Editor } from '@tinymce/tinymce-react';
 
 export default function NewStory() {
+    const [isComplete, setIsComplete] = useState(false);
+    const [expectedChaps, setExpectedChaps] = useState<number | string>('?');
     const navigate = useNavigate();
     const editorRef = useRef<any>(null);
     const [loading, setLoading] = useState(false);
