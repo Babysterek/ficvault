@@ -4,11 +4,12 @@ import Gatekeeper from './components/Gatekeeper';
 import Home from './pages/Home';
 import Reader from './pages/Reader';
 import NewStory from './pages/NewStory';
-import MyStories from './pages/MyStories';
+import MyStories from './pages/MyStories'; // Ensure this matches your file name exactly
 import AdminPortal from './pages/AdminPortal';
 import PreHome from './pages/PreHome';
 import PostChapter from './pages/PostChapter';
-import ManageStories from './pages/ManageStories'; // 1. ADD THIS IMPORT
+import ManageStories from './pages/ManageStories';
+import PostWordDoc from './pages/PostWordDoc';
 import './App.css';
 
 function App() {
@@ -29,43 +30,56 @@ function App() {
     <Router>
       <div className="app-container">
         <Routes>
+          {/* THE FRONT DOOR */}
           <Route path="/" element={<PreHome />} />
 
+          {/* THE LOGIN GATE */}
           <Route
             path="/entry"
             element={!user ? <Gatekeeper setUser={setUser} /> : <Navigate to="/archive" />}
           />
 
+          {/* THE MAIN ARCHIVE */}
           <Route
             path="/archive"
             element={user ? <Home user={user} /> : <Navigate to="/entry" />}
           />
 
-          <Route path="/read/:id" element={user ? <Reader user={user} /> : <Navigate to="/entry" />} />
+          {/* READER PAGE */}
+          <Route
+            path="/read/:id"
+            element={user ? <Reader user={user} /> : <Navigate to="/entry" />}
+          />
 
+          {/* ADMIN TOOLS */}
           <Route
             path="/post-work"
             element={user?.isAdmin ? <NewStory /> : <Navigate to="/archive" />}
           />
-
           <Route
             path="/post-chapter"
             element={user?.isAdmin ? <PostChapter /> : <Navigate to="/archive" />}
           />
-
-          {/* 2. ADD THIS ROUTE FOR MANAGING/EDITING STORIES */}
+          <Route
+            path="/post-word"
+            element={user?.isAdmin ? <PostWordDoc /> : <Navigate to="/archive" />}
+          />
           <Route
             path="/manage-stories"
             element={user?.isAdmin ? <ManageStories /> : <Navigate to="/archive" />}
           />
-
           <Route
             path="/admin-portal"
             element={user?.isAdmin ? <AdminPortal /> : <Navigate to="/archive" />}
           />
 
-          <Route path="/my-stories" element={user ? <MyStories user={user} /> : <Navigate to="/entry" />} />
+          {/* USER PAGES */}
+          <Route
+            path="/my-stories"
+            element={user ? <MyStories /> : <Navigate to="/entry" />}
+          />
 
+          {/* CATCH ALL */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
