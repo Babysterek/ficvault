@@ -9,7 +9,7 @@ export default function NewStory() {
     const editorRef = useRef<any>(null);
     const [loading, setLoading] = useState(false);
 
-    // AO3 Style Fields
+    // Form States
     const [title, setTitle] = useState('');
     const [rating, setRating] = useState('Not Rated');
     const [warnings, setWarnings] = useState('No Archive Warnings Apply');
@@ -28,7 +28,7 @@ export default function NewStory() {
 
         setLoading(true);
         try {
-            // 1. Create the Story Record
+            // 1. Create the Story Entry
             const { data: storyData, error: storyError } = await supabase
                 .from('stories')
                 .insert([{
@@ -40,7 +40,7 @@ export default function NewStory() {
 
             if (storyError) throw storyError;
 
-            // 2. Create the first Chapter with the Editor content
+            // 2. Create Chapter 1 with the Editor content
             const { error: chapError } = await supabase
                 .from('chapters')
                 .insert([{
@@ -52,7 +52,7 @@ export default function NewStory() {
 
             if (chapError) throw chapError;
 
-            alert("✨ Work Published to the Vault!");
+            alert("✨ Work Successfully Archived!");
             navigate('/archive');
         } catch (err: any) {
             alert(err.message);
@@ -87,7 +87,6 @@ export default function NewStory() {
                         <textarea style={{ width: '100%', height: '60px', padding: '8px' }} placeholder="Summary" value={summary} onChange={(e) => setSummary(e.target.value)} />
                     </fieldset>
 
-                    {/* THE ADVANCED EDITOR WITH YOUR API KEY */}
                     <div style={{ background: 'white', color: 'black', border: '1px solid #ccc' }}>
                         <Editor
                             apiKey="0dwpdw2m9932lqvdy75kj7fil1nrgcio3dk6ij0f74cemevw"
@@ -96,20 +95,16 @@ export default function NewStory() {
                                 height: 600,
                                 menubar: true,
                                 plugins: [
-                                    'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'link', 'lists', 'media', 'searchreplace', 'table', 'visualblocks', 'wordcount',
-                                    'checklist', 'mediaembed', 'casechange', 'formatpainter', 'pageembed', 'a11ychecker', 'tinymcespellchecker', 'permanentpen', 'powerpaste', 'advtable', 'advcode', 'advtemplate', 'tinymceai', 'mentions', 'tinycomments', 'tableofcontents', 'footnotes', 'mergetags', 'autocorrect', 'typography', 'inlinecss', 'markdown', 'importword', 'exportword', 'exportpdf'
+                                    'anchor', 'autolink', 'charmap', 'link', 'lists', 'media',
+                                    'searchreplace', 'table', 'visualblocks', 'wordcount', 'image', 'code'
                                 ],
-                                toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | addcomment showcomments | spellcheckdialog a11ycheck typography | align lineheight | checklist numlist bullist indent outdent | emoticons charmap | removeformat',
-                                tinycomments_mode: 'embedded',
-                                tinycomments_author: 'Babysterek',
-                                mergetags_list: [
-                                    { value: 'First.Name', title: 'First Name' },
-                                    { value: 'Email', title: 'Email' },
-                                ],
+                                toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline | link image media table | align lineheight | numlist bullist indent outdent | removeformat | code',
                                 content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
                                 image_title: true,
                                 automatic_uploads: true,
-                                file_picker_types: 'image'
+                                file_picker_types: 'image',
+                                media_alt_source: false,
+                                media_poster: false
                             }}
                         />
                     </div>
