@@ -1,126 +1,117 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 export default function NewStory() {
-    const [title, setTitle] = useState('');
-    const [file, setFile] = useState<File | null>(null);
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const [profiles, setProfiles] = useState<any[]>([]);
 
-    // Fetch users for the management table
-    useEffect(() => {
-        const fetchUsers = async () => {
-            const { data } = await supabase.from('profiles').select('*');
-            if (data) setProfiles(data);
-        };
-        fetchUsers();
-    }, []);
+    // AO3 Fields
+    const [title, setTitle] = useState('');
+    const [rating, setRating] = useState('Not Rated');
+    const [warnings, setWarnings] = useState('No Archive Warnings Apply');
+    const [fandoms, setFandoms] = useState('');
+    const [relationships, setRelationships] = useState('');
+    const [characters, setCharacters] = useState('');
+    const [tags, setTags] = useState('');
+    const [summary, setSummary] = useState('');
+    const [content, setContent] = useState(''); // The Rich Text
 
-    const handlePublish = async () => {
-        if (!title || !file) {
-            alert("Please provide both a title and an EPUB file.");
-            return;
-        }
-
+    const handlePost = async () => {
+        if (!title || !fandoms || !content) return alert("Title, Fandom, and Content are required!");
         setLoading(true);
 
         try {
-            // 1. Upload EPUB to Supabase Storage
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Math.random()}.${fileExt}`;
-            const { data: storageData, error: storageError } = await supabase.storage
-                .from('epubs')
-                .upload(fileName, file);
-
-            if (storageError) throw storageError;
-
-            // 2. Save Story Info to Database
-            const { error: dbError } = await supabase
+            // 1. Create the Story Entry
+            const { data: storyData, error: storyError } = await supabase
                 .from('stories')
                 .insert([{
-                    title: title,
-                    file_url: storageData.path,
-                    author: 'Babysterek'
+                    title, rating, archive_warnings: warnings,
+                    fandoms, relationships, characters,
+                    additional_tags: tags, summary, author: 'Babysterek'
+                }])
+                .select()
+                .single();
+
+            if (storyError) throw storyError;
+
+            // 2. Create Chapter 1 with the text
+            const { error: chapError } = await supabase
+                .from('chapters')
+                .insert([{
+                    story_id: storyData.id,
+                    chapter_number: 1,
+                    content: content,
+                    title: 'Chapter 1'
                 }]);
 
-            if (dbError) throw dbError;
+            if (chapError) throw chapError;
 
-            alert("🎉 Story successfully published to the Vault!");
-            setTitle('');
-            setFile(null);
-        } catch (error: any) {
-            alert(error.message);
+            alert("✨ Work Published Successfully!");
+            navigate('/archive');
+        } catch (err: any) {
+            alert(err.message);
         } finally {
             setLoading(false);
         }
     };
 
-    const revokeAccess = async (id: string) => {
-        await supabase.from('profiles').delete().eq('id', id);
-        setProfiles(profiles.filter(p => p.id !== id));
-    };
-
     return (
-        <div style={{ padding: '40px', background: '#F2B29A', minHeight: '100vh' }}>
-            <Link to="/" style={{ color: '#3E2723', textDecoration: 'none' }}>← Exit Command Center</Link>
+        <div style={{ background: '#eee', minHeight: '100vh', padding: '20px', textAlign: 'left', fontFamily: 'sans-serif' }}>
+            <div style={{ maxWidth: '900px', margin: 'auto', background: 'white', border: '1px solid #ccc', padding: '20px' }}>
+                <h2 style={{ background: '#900', color: 'white', padding: '10px', margin: '-20px -20px 20px -20px' }}>Post New Work</h2>
 
-            {/* PUBLISH SECTION */}
-            <div className="vault-card" style={{ margin: '40px auto', width: '550px', background: 'white' }}>
-                <h2 style={{ fontFamily: 'serif' }}>ADMIN: POST NEW WORK</h2>
-                <input
-                    placeholder="STORY TITLE"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    style={{ border: '1px solid #3E2723', padding: '10px', marginBottom: '20px' }}
-                />
-                <div style={{ margin: '20px 0', textAlign: 'left' }}>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 'bold' }}>SOURCE FILE (EPUB)</label>
-                    <input
-                        type="file"
-                        accept=".epub"
-                        onChange={(e) => setFile(e.target.files?.[0] || null)}
-                        style={{ border: 'none', marginTop: '10px' }}
-                    />
-                </div>
+                {/* PREFACE */}
+                <fieldset style={{ marginBottom: '20px' }}>
+                    <legend>Preface</legend>
+                    <label>Rating: </label>
+                    <select value={rating} onChange={(e) => setRating(e.target.value)}>
+                        <option>Not Rated</option><option>General Audiences</option><option>Teen And Up Audiences</option><option>Mature</option><option>Explicit</option>
+                    </select>
+                    <br /><br />
+                    <label>Archive Warnings: </label>
+                    <select value={warnings} onChange={(e) => setWarnings(e.target.value)}>
+                        <option>No Archive Warnings Apply</option><option>Choose Not To Use Archive Warnings</option><option>Graphic Depictions Of Violence</option><option>Major Character Death</option>
+                    </select>
+                </fieldset>
+
+                {/* TAGS */}
+                <fieldset style={{ marginBottom: '20px' }}>
+                    <legend>Tags</legend>
+                    <label>Fandoms: </label>
+                    <input style={{ width: '100%' }} value={fandoms} onChange={(e) => setFandoms(e.target.value)} placeholder="e.g. Teen Wolf" />
+                    <label>Relationships: </label>
+                    <input style={{ width: '100%' }} value={relationships} onChange={(e) => setRelationships(e.target.value)} placeholder="e.g. Derek Hale/Stiles Stilinski" />
+                    <label>Characters: </label>
+                    <input style={{ width: '100%' }} value={characters} onChange={(e) => setCharacters(e.target.value)} />
+                    <label>Additional Tags: </label>
+                    <input style={{ width: '100%' }} value={tags} onChange={(e) => setTags(e.target.value)} />
+                </fieldset>
+
+                {/* DESCRIPTION */}
+                <fieldset style={{ marginBottom: '20px' }}>
+                    <legend>Description</legend>
+                    <label>Title: </label>
+                    <input style={{ width: '100%', fontSize: '1.2rem' }} value={title} onChange={(e) => setTitle(e.target.value)} />
+                    <label>Summary: </label>
+                    <textarea style={{ width: '100%', height: '80px' }} value={summary} onChange={(e) => setSummary(e.target.value)} />
+                </fieldset>
+
+                {/* CONTENT */}
+                <fieldset>
+                    <legend>Work Text</legend>
+                    <ReactQuill theme="snow" value={content} onChange={setContent} style={{ height: '400px', marginBottom: '50px' }} />
+                </fieldset>
+
                 <button
-                    onClick={handlePublish}
+                    onClick={handlePost}
                     disabled={loading}
-                    style={{ width: '100%', opacity: loading ? 0.5 : 1 }}
+                    style={{ background: '#900', color: 'white', padding: '10px 20px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
                 >
-                    {loading ? 'ARCHIVING...' : 'PUBLISH TO ARCHIVE'}
+                    {loading ? "Posting..." : "Post"}
                 </button>
-            </div>
-
-            {/* USER MANAGEMENT SECTION */}
-            <div style={{ maxWidth: '800px', margin: 'auto', background: 'white', padding: '20px', border: '1px solid #3E2723' }}>
-                <h3 style={{ margin: 0 }}>USER MANAGEMENT</h3>
-                <p style={{ fontSize: '0.8rem', color: '#666' }}>View and manage site access for pseudonyms.</p>
-                <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
-                    <thead>
-                        <tr style={{ borderBottom: '2px solid #3E2723', textAlign: 'left' }}>
-                            <th style={{ padding: '10px' }}>Pseudonym</th>
-                            <th style={{ padding: '10px' }}>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {profiles.map(p => (
-                            <tr key={p.id} style={{ borderBottom: '1px solid #eee' }}>
-                                <td style={{ padding: '10px' }}>{p.username}</td>
-                                <td style={{ padding: '10px' }}>
-                                    {p.username !== 'Babysterek' && (
-                                        <button
-                                            onClick={() => revokeAccess(p.id)}
-                                            style={{ background: 'red', fontSize: '0.6rem', padding: '5px 10px' }}
-                                        >
-                                            REVOKE ACCESS
-                                        </button>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
             </div>
         </div>
     );
