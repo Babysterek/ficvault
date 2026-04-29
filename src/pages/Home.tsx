@@ -36,6 +36,7 @@ export default function Home({ user }: any) {
             <header style={{ borderBottom: '3px solid #3E2723', marginBottom: '30px', paddingBottom: '10px' }}>
                 <h1 style={{ color: '#3E2723', fontFamily: 'serif', fontSize: '2.5rem', margin: 0 }}>FICVAULT ARCHIVE</h1>
                 <nav style={{ display: 'flex', gap: '20px', marginTop: '15px' }}>
+                    {user.isAdmin && <Link to="/post-word" style={{ color: '#3E2723', fontWeight: 'bold' }}>Import from Word</Link>}
                     {user?.isAdmin && <Link to="/post-work" style={{ color: '#3E2723', fontWeight: 'bold' }}>+ Post New Work</Link>}
                     {user?.isAdmin && <Link to="/manage-stories" style={{ color: '#3E2723', fontWeight: 'bold' }}>Manage Vault</Link>}
                     <Link to="/my-stories" style={{ color: '#3E2723' }}>My Vault</Link>
