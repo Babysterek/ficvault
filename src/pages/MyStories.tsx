@@ -1,72 +1,34 @@
-import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
-// @ts-ignore
-import { Editor } from '@tinymce/tinymce-react';
+import { Link } from 'react-router-dom';
 
-export default function NewStory() {
-    const navigate = useNavigate();
-    const editorRef = useRef<any>(null);
-    const [loading, setLoading] = useState(false);
+export default function MyStories({ user }: any) {
+    const [bookmarks, setBookmarks] = useState<any[]>([]);
 
-    const [title, setTitle] = useState('');
-    const [rating, setRating] = useState('Not Rated');
-    const [fandoms, setFandoms] = useState('');
-    const [summary, setSummary] = useState('');
+    useEffect(() => {
+        const fetchBookmarks = async () => {
+            if (!user || user.id === 'guest') return;
+            const { data } = await supabase.from('bookmarks').select('stories(*)').eq('user_id', user.id);
+            if (data) setBookmarks(data.map(b => b.stories));
+        };
+        fetchBookmarks();
+    }, [user]);
 
-    const handlePost = async () => {
-        const content = editorRef.current ? editorRef.current.getContent() : '';
-        if (!title || !fandoms || !content) return alert("Title, Fandom, and Content are required!");
-
-        setLoading(true);
-        try {
-            const { data: storyData, error: storyError } = await supabase
-                .from('stories')
-                .insert([{ title, rating, fandoms, summary, author: 'Babysterek' }])
-                .select().single();
-
-            if (storyError) throw storyError;
-
-            const { error: chapError } = await supabase
-                .from('chapters')
-                .insert([{ story_id: storyData.id, chapter_number: 1, content: content, title: 'Chapter 1' }]);
-
-            if (chapError) throw chapError;
-            navigate('/archive');
-        } catch (err: any) { alert(err.message); } finally { setLoading(false); }
+    const remove = async (storyId: string) => {
+        await supabase.from('bookmarks').delete().eq('user_id', user.id).eq('story_id', storyId);
+        setBookmarks(bookmarks.filter(b => b.id !== storyId));
     };
 
     return (
-        <div style={{ background: '#eee', minHeight: '100vh', padding: '20px', textAlign: 'left', color: '#000' }}>
-            <div style={{ maxWidth: '1000px', margin: 'auto', background: 'white', border: '1px solid #ccc', padding: '20px' }}>
-                <h2 style={{ background: '#3E2723', color: 'white', padding: '10px', margin: '-20px -20px 20px -20px' }}>FICVAULT: POST NEW WORK</h2>
-
-                <div style={{ display: 'grid', gap: '15px', marginTop: '20px' }}>
-                    <input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} style={{ padding: '10px' }} />
-                    <input placeholder="Fandoms" value={fandoms} onChange={(e) => setFandoms(e.target.value)} style={{ padding: '10px' }} />
-                    <textarea placeholder="Summary" value={summary} onChange={(e) => setSummary(e.target.value)} style={{ height: '60px', padding: '10px' }} />
+        <div style={{ padding: '40px', textAlign: 'left', maxWidth: '900px', margin: 'auto' }}>
+            <h2 style={{ borderBottom: '2px solid #3E2723' }}>MY PINNED RECORDS</h2>
+            <Link to="/archive">← Back to Archive</Link>
+            {bookmarks.length === 0 ? <p style={{ marginTop: '20px' }}>No bookmarks found.</p> : bookmarks.map(story => (
+                <div key={story.id} style={{ padding: '20px', border: '1px solid #3E2723', marginTop: '20px', display: 'flex', justifyContent: 'space-between' }}>
+                    <Link to={`/read/${story.id}`} style={{ fontWeight: 'bold', color: '#3E2723', fontSize: '1.2rem', textDecoration: 'none' }}>{story.title}</Link>
+                    <button onClick={() => remove(story.id)} style={{ color: 'red', border: 'none', background: 'none', cursor: 'pointer' }}>REMOVE</button>
                 </div>
-
-                <div style={{ margin: '20px 0', border: '1px solid #ccc' }}>
-                    <Editor
-                        apiKey="0dwpdw2m9932lqvdy75kj7fil1nrgcio3dk6ij0f74cemevw"
-                        onInit={(_evt: any, editor: any) => editorRef.current = editor}
-                        init={{
-                            height: 500,
-                            menubar: true,
-                            plugins: ['link', 'image', 'lists', 'code', 'help', 'wordcount', 'media'],
-                            toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | image link media | code',
-                            image_dimensions: true,
-                            image_title: true,
-                            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
-                        }}
-                    />
-                </div>
-
-                <button onClick={handlePost} disabled={loading} style={{ background: '#3E2723', color: 'white', padding: '15px 40px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>
-                    {loading ? "ARCHIVING..." : "POST TO VAULT"}
-                </button>
-            </div>
+            ))}
         </div>
     );
 }

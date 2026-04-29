@@ -1,30 +1,13 @@
 import { Link } from 'react-router-dom';
-import './PreHome.css'; // Make sure the CSS file name matches!
 
 export default function PreHome() {
     return (
-        <div className="prehome">
-            <div className="bg-overlay"></div>
-
-            <div className="content">
-                <p className="subtitle">PRIVATE ARCHIVE COLLECTION</p>
-                <h1 className="title">THE VAULT</h1>
-
-                <div className="key">🔑</div>
-
-                <p className="desc">
-                    A curated collection of fictions and digital archives.
-                    Invitation code required for entry.
-                </p>
-
-                <Link to="/entry">
-                    <button className="btn primary">ENTER COLLECTION</button>
-                </Link>
-
-                <div className="footer">
-                    EST. 2024 • MEMBERS ONLY
-                </div>
-            </div>
+        <div style={{ background: '#F2B29A', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+            <h1 style={{ fontSize: '4rem', color: '#3E2723', fontFamily: 'serif', margin: 0 }}>FICVAULT</h1>
+            <p style={{ fontSize: '1.2rem', color: '#3E2723', letterSpacing: '2px', marginBottom: '40px' }}>SECURE ARCHIVE & PRIVATE COLLECTION</p>
+            <Link to="/entry" style={{ background: '#3E2723', color: 'white', padding: '15px 50px', textDecoration: 'none', fontWeight: 'bold', fontSize: '1.1rem', boxShadow: '5px 5px 0px white' }}>
+                ACCESS RECORDS
+            </Link>
         </div>
     );
 }

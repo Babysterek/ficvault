@@ -22,8 +22,8 @@ function App() {
 
   useEffect(() => {
     if (user) {
-      // 🕵️ CHANGE THIS EMAIL to your own email to become the Admin
-      user.isAdmin = user.email === 'your-email@example.com';
+      // 🕵️ ADMIN CHECK
+      user.isAdmin = user.email === 'your-admin@email.com';
       localStorage.setItem('ficvault_user', JSON.stringify(user));
     } else {
       localStorage.removeItem('ficvault_user');
@@ -36,13 +36,11 @@ function App() {
         <Routes>
           <Route path="/" element={<PreHome />} />
           <Route path="/entry" element={!user ? <Gatekeeper setUser={setUser} /> : <Navigate to="/archive" />} />
-
-          {/* USER ROUTES */}
           <Route path="/archive" element={user ? <Home user={user} /> : <Navigate to="/entry" />} />
           <Route path="/read/:id" element={user ? <Reader user={user} /> : <Navigate to="/entry" />} />
           <Route path="/my-stories" element={user ? <MyStories /> : <Navigate to="/entry" />} />
 
-          {/* 🔐 ADMIN ONLY ROUTES */}
+          {/* 🔐 ADMIN ONLY */}
           <Route path="/post-work" element={user?.isAdmin ? <NewStory /> : <Navigate to="/archive" />} />
           <Route path="/post-chapter" element={user?.isAdmin ? <PostChapter /> : <Navigate to="/archive" />} />
           <Route path="/post-word" element={user?.isAdmin ? <PostWordDoc /> : <Navigate to="/archive" />} />
