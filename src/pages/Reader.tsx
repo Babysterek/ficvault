@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../supabase';
+import Comments from '../components/Comments'; // 🌟 1. IMPORT COMMENTS
 
 export default function Reader({ user }: any) {
     const { id } = useParams();
@@ -11,14 +12,11 @@ export default function Reader({ user }: any) {
 
     useEffect(() => {
         const fetchFullStory = async () => {
-            // 1. Fetch Story Details
             const { data: sData } = await supabase.from('stories').select('*').eq('id', id).single();
-
-            // 2. Fetch ONLY Published Chapters
             const { data: cData } = await supabase.from('chapters')
                 .select('*')
                 .eq('story_id', id)
-                .eq('is_published', true) // 🛡️ PRIVACY: Hide drafts from everyone
+                .eq('is_published', true)
                 .order('chapter_number', { ascending: true });
 
             if (sData) setStory(sData);
@@ -30,7 +28,6 @@ export default function Reader({ user }: any) {
 
     if (loading) return <div style={{ padding: '50px', textAlign: 'center' }}>Decrypting records...</div>;
 
-    // If no chapters are published yet
     if (!chapters.length) return (
         <div style={{ padding: '50px', textAlign: 'center', background: '#F2B29A', minHeight: '100vh' }}>
             <div style={{ background: 'white', padding: '40px', maxWidth: '600px', margin: 'auto', border: '1px solid #3E2723' }}>
@@ -46,7 +43,6 @@ export default function Reader({ user }: any) {
     return (
         <div style={{ background: '#F2B29A', minHeight: '100vh', padding: '20px' }}>
 
-            {/* 🎨 WORK SKIN INJECTOR: Injects custom story CSS if it exists */}
             {story?.work_skin && (
                 <style dangerouslySetInnerHTML={{ __html: story.work_skin }} />
             )}
@@ -56,7 +52,6 @@ export default function Reader({ user }: any) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                     <Link to="/archive" style={{ color: '#3E2723', fontWeight: 'bold', textDecoration: 'none' }}>← BACK</Link>
 
-                    {/* 📚 CHAPTER INDEX DROPDOWN */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <label style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#3E2723' }}>INDEX:</label>
                         <select
@@ -65,13 +60,7 @@ export default function Reader({ user }: any) {
                                 setCurrentIdx(parseInt(e.target.value));
                                 window.scrollTo(0, 0);
                             }}
-                            style={{
-                                padding: '5px 10px',
-                                border: '1px solid #3E2723',
-                                background: 'white',
-                                fontFamily: 'serif',
-                                cursor: 'pointer'
-                            }}
+                            style={{ padding: '5px 10px', border: '1px solid #3E2723', background: 'white', fontFamily: 'serif', cursor: 'pointer' }}
                         >
                             {chapters.map((chapter, index) => (
                                 <option key={chapter.id} value={index}>
@@ -91,13 +80,11 @@ export default function Reader({ user }: any) {
                     <p style={{ fontSize: '1.1rem' }}>By <strong>{story?.author || 'Babysterek'}</strong></p>
                 </header>
 
-                {/* 🏷️ CONTENT WRAPPER: Use 'id="workskin"' to make sure your CSS applies to this section */}
                 <section id="workskin">
                     <h2 style={{ textAlign: 'center', fontFamily: 'serif', color: '#5D4037' }}>
                         Chapter {ch.chapter_number}: {ch.title}
                     </h2>
 
-                    {/* 🌟 AUTO-IMAGE RENDERER: Turns links into pictures automatically */}
                     <div
                         style={{ lineHeight: '1.8', fontSize: '1.15rem', fontFamily: 'Georgia, serif', marginTop: '30px' }}
                         dangerouslySetInnerHTML={{
@@ -125,9 +112,18 @@ export default function Reader({ user }: any) {
                         NEXT CHAPTER →
                     </button>
                 </div>
+
+                {/* 🌟 2. ADD COMMENTS COMPONENT HERE */}
+                <Comments
+                    storyId={id}
+                    chapterId={ch.id}
+                    user={user}
+                    commentsEnabled={story?.comments_enabled}
+                />
+
             </div>
         </div>
     );
 }
 
-const btnNav = { padding: '10px 25px', cursor: 'pointer', background: '#eee', border: '1px solid #3E2723', fontWeight: 'bold' };
+const btnNav = { padding: '10px 25px', cursor: 'pointer', background: '#eee', border: '1px solid #3E2723', fontWeight: 'bold' as 'bold' };
