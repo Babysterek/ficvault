@@ -18,10 +18,23 @@ export default function ManageStories() {
 
     useEffect(() => { fetchStories(); }, []);
 
-    // 🌟 Manual update for "Max Chapters" (e.g., changes 1/? to 1/15)
+    // 🌟 Manual update for "Max Chapters"
     const updateExpected = async (id: string, val: string) => {
         await supabase.from('stories').update({ expected_chapters: val }).eq('id', id);
         fetchStories();
+    };
+
+    // 🌟 Toggle Completion Status (Ongoing vs Completed)
+    const toggleCompletion = async (id: string, currentStatus: boolean) => {
+        await supabase.from('stories').update({ is_complete: !currentStatus }).eq('id', id);
+        fetchStories();
+    };
+
+    // 🌟 Update Work Skin (CSS)
+    const updateWorkSkin = async (id: string, skin: string) => {
+        await supabase.from('stories').update({ work_skin: skin }).eq('id', id);
+        // We don't necessarily need a full fetch here to save resources, just a confirmation
+        console.log("Skin updated for " + id);
     };
 
     // 🌟 Toggle specific chapters between Live and Draft
@@ -50,11 +63,37 @@ export default function ManageStories() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <div>
                                 <h3 style={{ margin: 0 }}>{s.title}</h3>
-                                <p style={{ fontSize: '0.8rem', color: '#666' }}>Story ID: {s.id}</p>
+                                <p style={{ fontSize: '0.8rem', color: '#666', margin: '5px 0' }}>Story ID: {s.id}</p>
+
+                                {/* ➕ ADD CHAPTER BUTTON */}
+                                <Link
+                                    to={`/post-chapter`}
+                                    style={{ fontSize: '0.8rem', color: '#0056b3', fontWeight: 'bold', textDecoration: 'none', border: '1px solid #0056b3', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '5px' }}
+                                >
+                                    + ADD NEW CHAPTER
+                                </Link>
                             </div>
 
-                            {/* 📊 MANUAL CHAPTER UPDATE */}
                             <div style={{ textAlign: 'right' }}>
+                                {/* ✅ COMPLETION STATUS TOGGLE */}
+                                <button
+                                    onClick={() => toggleCompletion(s.id, s.is_complete)}
+                                    style={{
+                                        background: s.is_complete ? '#2e7d32' : '#ed6c02',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '6px 12px',
+                                        cursor: 'pointer',
+                                        fontWeight: 'bold',
+                                        borderRadius: '4px',
+                                        marginBottom: '10px',
+                                        fontSize: '0.75rem'
+                                    }}
+                                >
+                                    {s.is_complete ? '● COMPLETED' : '○ ONGOING'}
+                                </button>
+                                <br />
+
                                 <label style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>MAX CHAPTERS: </label>
                                 <input
                                     defaultValue={s.expected_chapters || '?'}
@@ -69,6 +108,26 @@ export default function ManageStories() {
                                     DELETE WORK
                                 </button>
                             </div>
+                        </div>
+
+                        {/* 🎨 WORK SKIN BOX (CSS Coding) */}
+                        <div style={{ marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '15px' }}>
+                            <label style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#3E2723' }}>WORK SKIN (CSS):</label>
+                            <textarea
+                                defaultValue={s.work_skin}
+                                onBlur={(e) => updateWorkSkin(s.id, e.target.value)}
+                                placeholder="/* Paste CSS here to style your HTML elements */"
+                                style={{
+                                    width: '100%',
+                                    height: '60px',
+                                    fontFamily: 'monospace',
+                                    marginTop: '5px',
+                                    padding: '10px',
+                                    fontSize: '0.8rem',
+                                    border: '1px solid #ccc',
+                                    display: 'block'
+                                }}
+                            />
                         </div>
 
                         {/* 📚 CHAPTER LIST */}
@@ -89,7 +148,8 @@ export default function ManageStories() {
                                                 cursor: 'pointer',
                                                 padding: '4px 12px',
                                                 fontSize: '0.7rem',
-                                                fontWeight: 'bold'
+                                                fontWeight: 'bold',
+                                                borderRadius: '3px'
                                             }}
                                         >
                                             {ch.is_published ? '● LIVE' : '○ DRAFT'}
