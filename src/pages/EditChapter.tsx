@@ -26,18 +26,27 @@ export default function EditChapter() {
     }, [id]);
 
     const handleUpdate = async () => {
-        // Use content from the active mode
+        // 1. Get content from current active mode
         const finalContent = editMode === 'rich' ? editorRef.current?.getContent() : htmlContent;
 
+        // 2. 🧠 Calculate Word Count (Strips HTML tags first)
+        const plainText = finalContent.replace(/<[^>]*>/g, ' ');
+        const words = plainText.trim().split(/\s+/).filter((w: string | any[]) => w.length > 0).length;
+
+        // 3. Update Database (Marks as Published and saves Word Count)
         const { error } = await supabase
             .from('chapters')
-            .update({ content: finalContent })
+            .update({
+                content: finalContent,
+                word_count: words,
+                is_published: true // 🌟 Making it live for the 1/15 count
+            })
             .eq('id', id);
 
         if (error) {
             alert(error.message);
         } else {
-            alert("✨ Chapter Updated!");
+            alert(`✨ Chapter Saved! (${words} words)`);
             navigate('/manage-stories');
         }
     };
@@ -61,12 +70,12 @@ export default function EditChapter() {
                 {/* 🔄 MODE TOGGLE */}
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '5px', marginTop: '20px', marginBottom: '10px' }}>
                     <button onClick={() => {
-                        if (editMode === 'html') setHtmlContent(htmlContent); // Sync before switch
+                        if (editMode === 'html') setHtmlContent(htmlContent);
                         setEditMode('rich');
                     }} style={{ padding: '5px 15px', background: editMode === 'rich' ? '#3E2723' : '#eee', color: editMode === 'rich' ? 'white' : 'black', border: 'none', cursor: 'pointer' }}>Rich Text</button>
 
                     <button onClick={() => {
-                        if (editMode === 'rich') setHtmlContent(editorRef.current?.getContent()); // Sync before switch
+                        if (editMode === 'rich') setHtmlContent(editorRef.current?.getContent());
                         setEditMode('html');
                     }} style={{ padding: '5px 15px', background: editMode === 'html' ? '#3E2723' : '#eee', color: editMode === 'html' ? 'white' : 'black', border: 'none', cursor: 'pointer' }}>HTML</button>
                 </div>
@@ -75,13 +84,12 @@ export default function EditChapter() {
                     {editMode === 'rich' ? (
                         <Editor
                             apiKey="0dwpdw2m9932lqvdy75kj7fil1nrgcio3dk6ij0f74cemevw"
-                            onInit={(evt: any, editor: any) => editorRef.current = editor}
+                            onInit={(_evt: any, editor: any) => editorRef.current = editor}
                             initialValue={htmlContent}
                             init={{
                                 height: 600,
                                 menubar: false,
                                 plugins: ['advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview', 'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen', 'insertdatetime', 'media', 'table', 'wordcount', 'hr', 'paste'],
-                                // 🌟 ADDED 'blocks' FOR HEADLINES
                                 toolbar: 'blocks | paste | bold italic underline strikethrough | bullist numlist | alignleft aligncenter alignright alignjustify | link unlink image | blockquote hr | undo redo | code',
                                 image_dimensions: true,
                                 image_title: true

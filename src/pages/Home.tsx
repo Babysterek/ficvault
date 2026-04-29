@@ -9,15 +9,14 @@ export default function Home({ user }: any) {
 
     useEffect(() => {
         const fetchStories = async () => {
-            // 📊 Logic: Gets stories AND their chapter counts in one go
+            // 📊 Logic: Fetches stories + chapter details for progress and word counts
             let query = supabase
                 .from('stories')
                 .select(`
                     *,
-                    chapters (id)
+                    chapters (id, is_published, word_count)
                 `);
 
-            // 🕵️ SECURITY: If not admin, only show 'published' stories
             if (!user?.isAdmin) {
                 query = query.eq('status', 'published');
             }
@@ -25,7 +24,18 @@ export default function Home({ user }: any) {
             const { data, error } = await query.order('created_at', { ascending: false });
 
             if (!error && data) {
-                setStories(data);
+                // 🧠 Process stories to calculate live stats before setting state
+                const processedStories = data.map(story => {
+                    const liveChapters = story.chapters?.filter((c: any) => c.is_published).length || 0;
+                    const totalWords = story.chapters?.reduce((sum: number, c: any) => sum + (c.word_count || 0), 0) || 0;
+
+                    return {
+                        ...story,
+                        live_chapter_count: liveChapters,
+                        total_word_count: totalWords
+                    };
+                });
+                setStories(processedStories);
             }
             setLoading(false);
         };
@@ -49,7 +59,6 @@ export default function Home({ user }: any) {
                     Authenticated as: <strong>{user?.pseudo || 'Guest'}</strong> {user?.isAdmin && <span style={{ color: '#2e7d32' }}>(ADMIN)</span>}
                 </p>
 
-                {/* 🧭 NAVIGATION BAR: ONLY SHOW ADMIN BUTTONS TO BABYSTEREK */}
                 <nav style={{ display: 'flex', gap: '10px', marginTop: '20px', flexWrap: 'wrap' }}>
                     {user?.isAdmin ? (
                         <>
@@ -80,7 +89,6 @@ export default function Home({ user }: any) {
                 )}
             </div>
 
-            {/* Inline Styles for Buttons */}
             <style>{`
                 .nav-btn-admin {
                     background: #3E2723;

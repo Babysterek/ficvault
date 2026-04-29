@@ -5,9 +5,10 @@ interface StoryCardProps {
 }
 
 export default function StoryCard({ story }: StoryCardProps) {
-    // Logic to show chapter progress
-    const currentChapters = story.chapters?.length || 0;
+    // 📊 Use the processed counts from Home.tsx
+    const currentChapters = story.live_chapter_count || 0;
     const expectedChapters = story.expected_chapters || '?';
+    const wordCount = story.total_word_count || 0;
 
     return (
         <div style={{
@@ -47,10 +48,13 @@ export default function StoryCard({ story }: StoryCardProps) {
                     </p>
                 </div>
 
-                {/* 📊 CHAPTER COUNT & STATUS */}
-                <div style={{ textAlign: 'right', minWidth: '100px' }}>
+                {/* 📊 PROGRESS & WORD COUNT */}
+                <div style={{ textAlign: 'right', minWidth: '120px' }}>
                     <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#3E2723' }}>
                         {currentChapters}/{expectedChapters}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#666', margin: '2px 0' }}>
+                        {wordCount.toLocaleString()} Words
                     </div>
                     <div style={{
                         fontSize: '0.7rem',
