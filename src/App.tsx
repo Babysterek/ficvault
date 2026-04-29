@@ -10,7 +10,8 @@ import PreHome from './pages/PreHome';
 import PostChapter from './pages/PostChapter';
 import ManageStories from './pages/ManageStories';
 import PostWordDoc from './pages/PostWordDoc';
-import PostEpub from './pages/PostEpub'; // Ensure this matches the file name!
+import PostEpub from './pages/PostEpub';
+import EditChapter from './pages/EditChapter'; // 1. IMPORT EDIT PAGE
 import './App.css';
 
 function App() {
@@ -31,16 +32,18 @@ function App() {
           <Route path="/" element={<PreHome />} />
           <Route path="/entry" element={!user ? <Gatekeeper setUser={setUser} /> : <Navigate to="/archive" />} />
           <Route path="/archive" element={user ? <Home user={user} /> : <Navigate to="/entry" />} />
-          <Route path="/read/:id" element={user ? <Reader user={user} /> : <Navigate to="/entry" />} />
+          <Route path="/read/:id" element={user ? <Reader /> : <Navigate to="/entry" />} />
 
-          {/* Admin Routes */}
           <Route path="/post-work" element={user?.isAdmin ? <NewStory /> : <Navigate to="/archive" />} />
           <Route path="/post-chapter" element={user?.isAdmin ? <PostChapter /> : <Navigate to="/archive" />} />
           <Route path="/post-word" element={user?.isAdmin ? <PostWordDoc /> : <Navigate to="/archive" />} />
           <Route path="/post-epub" element={user?.isAdmin ? <PostEpub /> : <Navigate to="/archive" />} />
+
+          {/* 2. ADD THE EDIT ROUTE HERE */}
+          <Route path="/edit-chapter/:id" element={user?.isAdmin ? <EditChapter /> : <Navigate to="/archive" />} />
+
           <Route path="/manage-stories" element={user?.isAdmin ? <ManageStories /> : <Navigate to="/archive" />} />
           <Route path="/admin-portal" element={user?.isAdmin ? <AdminPortal /> : <Navigate to="/archive" />} />
-
           <Route path="/my-stories" element={user ? <MyStories /> : <Navigate to="/entry" />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

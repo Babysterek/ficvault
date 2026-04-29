@@ -4,24 +4,20 @@ import { Link } from 'react-router-dom';
 
 export default function ManageStories() {
     const [stories, setStories] = useState<any[]>([]);
-    const [editingId, setEditingId] = useState<string | null>(null);
-    const [newTitle, setNewTitle] = useState('');
 
     const fetchStories = async () => {
-        const { data } = await supabase.from('stories').select('*').order('created_at', { ascending: false });
+        // 🧠 Logic: Gets stories AND their chapters in one go
+        const { data } = await supabase
+            .from('stories')
+            .select('*, chapters(id, chapter_number, title)')
+            .order('created_at', { ascending: false });
         if (data) setStories(data);
     };
 
     useEffect(() => { fetchStories(); }, []);
 
-    const saveTitle = async (id: string) => {
-        await supabase.from('stories').update({ title: newTitle }).eq('id', id);
-        setEditingId(null);
-        fetchStories();
-    };
-
     const deleteStory = async (id: string) => {
-        if (window.confirm("Danger! This deletes the story and ALL its chapters forever. Proceed?")) {
+        if (window.confirm("Delete this entire work and all its chapters?")) {
             await supabase.from('stories').delete().eq('id', id);
             fetchStories();
         }
@@ -29,58 +25,28 @@ export default function ManageStories() {
 
     return (
         <div style={{ padding: '40px', background: '#F2B29A', minHeight: '100vh' }}>
-            <div className="vault-card" style={{ background: 'white', padding: '20px', maxWidth: '900px', margin: 'auto', border: '2px solid #3E2723' }}>
+            <div style={{ background: 'white', padding: '30px', maxWidth: '900px', margin: 'auto', border: '2px solid #3E2723' }}>
                 <h2 style={{ fontFamily: 'serif' }}>VAULT MANAGEMENT</h2>
+                <Link to="/archive" style={{ display: 'block', marginBottom: '20px' }}>← Back to Archive</Link>
 
-                <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
-                    <thead>
-                        <tr style={{ borderBottom: '2px solid #3E2723', textAlign: 'left' }}>
-                            <th style={{ padding: '10px' }}>Work Title</th>
-                            <th style={{ padding: '10px', textAlign: 'right' }}>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {stories.map(s => (
-                            <tr key={s.id} style={{ borderBottom: '1px solid #eee' }}>
-                                <td style={{ padding: '10px' }}>
-                                    {editingId === s.id ? (
-                                        <input
-                                            value={newTitle}
-                                            onChange={(e) => setNewTitle(e.target.value)}
-                                            style={{ padding: '5px', border: '1px solid #3E2723' }}
-                                        />
-                                    ) : (
-                                        <strong>{s.title}</strong>
-                                    )}
-                                </td>
-                                <td style={{ padding: '10px', textAlign: 'right' }}>
-                                    {editingId === s.id ? (
-                                        <button onClick={() => saveTitle(s.id)} style={{ background: 'green', color: 'white', marginRight: '5px' }}>Save</button>
-                                    ) : (
-                                        <button onClick={() => { setEditingId(s.id); setNewTitle(s.title); }} style={{ marginRight: '5px' }}>Edit Title</button>
-                                    )}
+                {stories.map(s => (
+                    <div key={s.id} style={{ border: '1px solid #eee', padding: '20px', marginBottom: '20px', textAlign: 'left' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <h3 style={{ margin: 0 }}>{s.title}</h3>
+                            <button onClick={() => deleteStory(s.id)} style={{ color: 'red', border: 'none', background: 'none', cursor: 'pointer' }}>Delete Work</button>
+                        </div>
 
-                                    <Link to="/post-chapter" style={{
-                                        marginRight: '10px',
-                                        padding: '5px 10px',
-                                        background: '#3E2723',
-                                        color: 'white',
-                                        textDecoration: 'none',
-                                        fontSize: '0.8rem'
-                                    }}>
-                                        + Add Chapter
-                                    </Link>
-
-                                    <button onClick={() => deleteStory(s.id)} style={{ background: 'red', color: 'white', border: 'none', padding: '5px 10px', cursor: 'pointer' }}>
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-
-                <Link to="/archive" style={{ display: 'block', marginTop: '30px', color: '#3E2723' }}>← Back to Archive</Link>
+                        <div style={{ marginTop: '15px', padding: '10px', background: '#f9f9f9' }}>
+                            <p style={{ fontWeight: 'bold', fontSize: '0.8rem' }}>CHAPTERS:</p>
+                            {s.chapters?.sort((a: any, b: any) => a.chapter_number - b.chapter_number).map((ch: any) => (
+                                <div key={ch.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #ddd' }}>
+                                    <span>Ch {ch.chapter_number}: {ch.title || 'Untitled'}</span>
+                                    <Link to={`/edit-chapter/${ch.id}`} style={{ fontWeight: 'bold', color: '#3E2723', textDecoration: 'none' }}>[EDIT TEXT]</Link>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
             </div>
         </div>
     );
