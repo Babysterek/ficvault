@@ -70,12 +70,11 @@ export default function PostChapter() {
                         onInit={(_evt: any, editor: any) => editorRef.current = editor}
                         init={{
                             height: 500,
-                            menubar: true,
-                            plugins: ['link', 'image', 'lists', 'code', 'help', 'wordcount', 'media'],
-                            toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | image link media | code',
+                            menubar: false,
+                            plugins: ['link', 'image', 'lists', 'code', 'hr', 'paste'],
+                            toolbar: 'paste | bold italic underline strikethrough | link unlink image | blockquote hr | undo redo',
                             image_dimensions: true,
-                            image_title: true,
-                            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+                            image_title: true
                         }}
                     />
                 </div>
