@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../supabase';
 
-export default function Reader() {
+export default function Reader({ user }: any) {
     const { id } = useParams();
     const [story, setStory] = useState<any>(null);
     const [chapters, setChapters] = useState<any[]>([]);
@@ -20,29 +20,35 @@ export default function Reader() {
         fetchData();
     }, [id]);
 
-    if (loading) return <div style={{ padding: '50px', textAlign: 'center' }}>Opening Records...</div>;
-    if (!chapters.length) return <div style={{ padding: '50px', textAlign: 'center' }}>No content found.</div>;
+    const addBookmark = async () => {
+        const { error } = await supabase.from('bookmarks').insert([{ user_id: user.id, story_id: id }]);
+        alert(error ? "Already bookmarked!" : "Added to Bookmarks!");
+    };
 
+    if (loading) return <div style={{ padding: '50px', textAlign: 'center' }}>Loading...</div>;
     const chapter = chapters[currentIdx];
 
     return (
         <div style={{ background: '#F2B29A', minHeight: '100vh', padding: '20px' }}>
-            <div style={{ maxWidth: '850px', margin: 'auto', background: 'white', padding: '40px', borderRadius: '8px', textAlign: 'left', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
-                <Link to="/archive" style={{ color: '#3E2723', fontWeight: 'bold', textDecoration: 'none' }}>← BACK TO ARCHIVE</Link>
-                <h1 style={{ fontFamily: 'serif', margin: '20px 0 5px 0' }}>{story?.title}</h1>
-                <p style={{ borderBottom: '2px solid #3E2723', paddingBottom: '10px' }}>By {story?.author}</p>
-
-                <div style={{ marginTop: '40px' }}>
-                    <h2 style={{ textAlign: 'center', fontFamily: 'serif' }}>Chapter {chapter.chapter_number}: {chapter.title}</h2>
-                    <div
-                        style={{ lineHeight: '1.8', fontSize: '1.15rem', fontFamily: 'Georgia, serif', marginTop: '30px' }}
-                        dangerouslySetInnerHTML={{ __html: chapter.content }}
-                    />
+            <div style={{ maxWidth: '800px', margin: 'auto', background: 'white', padding: '40px', textAlign: 'left', borderRadius: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Link to="/archive" style={{ fontWeight: 'bold', color: '#3E2723' }}>← ARCHIVE</Link>
+                    <button onClick={addBookmark} style={{ background: '#3E2723', color: 'white', border: 'none', padding: '5px 10px', cursor: 'pointer' }}>🔖 BOOKMARK</button>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '50px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
-                    <button disabled={currentIdx === 0} onClick={() => setCurrentIdx(currentIdx - 1)} style={{ padding: '10px 20px' }}>← PREV</button>
-                    <button disabled={currentIdx === chapters.length - 1} onClick={() => setCurrentIdx(currentIdx + 1)} style={{ padding: '10px 20px' }}>NEXT →</button>
+                <h1 style={{ fontFamily: 'serif', marginTop: '20px' }}>{story?.title}</h1>
+                <p style={{ borderBottom: '1px solid #ddd', paddingBottom: '10px' }}>By {story?.author}</p>
+
+                {chapter && (
+                    <div style={{ marginTop: '30px' }}>
+                        <h2 style={{ textAlign: 'center', fontFamily: 'serif' }}>{chapter.title}</h2>
+                        <div style={{ lineHeight: '1.8', fontSize: '1.1rem', marginTop: '20px' }} dangerouslySetInnerHTML={{ __html: chapter.content }} />
+                    </div>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '40px' }}>
+                    <button disabled={currentIdx === 0} onClick={() => setCurrentIdx(currentIdx - 1)}>← PREV</button>
+                    <button disabled={currentIdx === chapters.length - 1} onClick={() => setCurrentIdx(currentIdx + 1)}>NEXT →</button>
                 </div>
             </div>
         </div>
