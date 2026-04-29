@@ -16,7 +16,7 @@ export default function PostWordDoc() {
     }, []);
 
     const handleFileChange = async (e: any) => {
-        const file = e.target.files[0];
+        const file = e.target.files?.[0];
         if (!file || !selectedStory) return alert("Select a story first!");
 
         setLoading(true);
@@ -27,12 +27,18 @@ export default function PostWordDoc() {
             const result = await mammoth.convertToHtml({ arrayBuffer });
             const fullHtml = result.value;
 
-            // 🧠 THE BRAIN: This splits the text every time it sees "Chapter"
-            // It looks for <h2>Chapter</h2> or <p>Chapter 1</p> etc.
-            const chapterParts = fullHtml.split(/Chapter\s?\d+/i);
+            // 🧠 SMARTER SPLITTER: 
+            // Only splits if "Chapter" is inside an <h2> or starts a new paragraph <p>
+            const chapterParts = fullHtml.split(/<(h2|p)>Chapter\s?\d+/i);
 
-            // Remove the first empty part if it exists
-            const cleanChapters = chapterParts.filter(c => c.trim().length > 10);
+            // Clean up the parts (remove tiny fragments and HTML tags from the split)
+            const cleanChapters = chapterParts.filter(c => c.trim().length > 50 && !c.includes('h2') && !c.includes('p'));
+
+            if (cleanChapters.length === 0) {
+                alert("Error: No chapters found. Make sure your Word doc has 'Chapter 1', 'Chapter 2' etc. as headings.");
+                setLoading(false);
+                return;
+            }
 
             for (let i = 0; i < cleanChapters.length; i++) {
                 await supabase.from('chapters').insert([{
@@ -52,18 +58,18 @@ export default function PostWordDoc() {
 
     return (
         <div style={{ padding: '40px', background: '#F2B29A', minHeight: '100vh' }}>
-            <div style={{ background: 'white', padding: '30px', maxWidth: '600px', margin: 'auto', border: '2px solid #3E2723' }}>
-                <h2>WORD TO CHAPTER CONVERTER</h2>
-                <p style={{ fontSize: '0.8rem' }}>Make sure your Word doc has the word "Chapter" before each new section.</p>
+            <div style={{ background: 'white', padding: '30px', maxWidth: '600px', margin: 'auto', border: '2px solid #3E2723', boxShadow: '10px 10px 0px #3E2723' }}>
+                <h2 style={{ fontFamily: 'serif' }}>WORD TO CHAPTER CONVERTER</h2>
+                <p style={{ fontSize: '0.8rem', color: '#666' }}>Your Word doc must have "Chapter 1", "Chapter 2" etc. at the start of each section.</p>
 
-                <select onChange={(e) => setSelectedStory(e.target.value)} style={{ width: '100%', padding: '10px', marginBottom: '20px' }}>
-                    <option value="">Pick the story to add chapters to...</option>
+                <select onChange={(e) => setSelectedStory(e.target.value)} style={{ width: '100%', padding: '10px', marginBottom: '20px', border: '1px solid #3E2723' }}>
+                    <option value="">Pick the story...</option>
                     {stories.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
                 </select>
 
-                <input type="file" accept=".docx" onChange={handleFileChange} disabled={loading} />
+                <input type="file" accept=".docx" onChange={handleFileChange} disabled={loading} style={{ marginBottom: '20px' }} />
 
-                {loading && <p>Processing and splitting chapters... please wait.</p>}
+                {loading && <p style={{ fontWeight: 'bold', color: 'red' }}>ARCHIVING CHAPTERS... PLEASE WAIT.</p>}
             </div>
         </div>
     );
