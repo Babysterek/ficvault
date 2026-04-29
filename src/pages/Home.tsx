@@ -7,7 +7,6 @@ export default function Home({ user }: any) {
     const [stories, setStories] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // 🧠 THE BRAIN: This part goes and gets the stories
     useEffect(() => {
         const fetchStories = async () => {
             const { data, error } = await supabase
@@ -29,9 +28,15 @@ export default function Home({ user }: any) {
                 <h1>FICVAULT ARCHIVE</h1>
                 <p>Welcome back, {user.pseudo}. You are viewing the restricted collection.</p>
 
-                <nav style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-                    {user.isAdmin && <Link to="/admin-portal" style={{ color: 'red', fontWeight: 'bold' }}>Admin Center</Link>}
-                    {user.isAdmin && <Link to="/post-work" style={{ color: '#3E2723', fontWeight: 'bold' }}>Post New</Link>}
+                <nav style={{ display: 'flex', gap: '20px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                    {user.isAdmin && (
+                        <>
+                            <Link to="/admin-portal" style={{ color: 'red', fontWeight: 'bold' }}>Admin Center</Link>
+                            <Link to="/post-work" style={{ color: '#3E2723', fontWeight: 'bold' }}>Post New</Link>
+                            {/* 🛠️ NEW LINK FOR MANAGING/EDITING */}
+                            <Link to="/manage-stories" style={{ color: '#3E2723', fontWeight: 'bold', borderBottom: '2px solid #3E2723' }}>Manage Vault</Link>
+                        </>
+                    )}
                     <Link to="/my-stories">My Vault</Link>
                 </nav>
             </header>

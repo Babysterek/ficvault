@@ -7,7 +7,8 @@ import NewStory from './pages/NewStory';
 import MyStories from './pages/MyStories';
 import AdminPortal from './pages/AdminPortal';
 import PreHome from './pages/PreHome';
-import PostChapter from './pages/PostChapter'; // 1. ADD THIS IMPORT
+import PostChapter from './pages/PostChapter';
+import ManageStories from './pages/ManageStories'; // 1. ADD THIS IMPORT
 import './App.css';
 
 function App() {
@@ -47,10 +48,15 @@ function App() {
             element={user?.isAdmin ? <NewStory /> : <Navigate to="/archive" />}
           />
 
-          {/* 2. ADD THIS ROUTE SO YOU CAN POST CHAPTERS */}
           <Route
             path="/post-chapter"
             element={user?.isAdmin ? <PostChapter /> : <Navigate to="/archive" />}
+          />
+
+          {/* 2. ADD THIS ROUTE FOR MANAGING/EDITING STORIES */}
+          <Route
+            path="/manage-stories"
+            element={user?.isAdmin ? <ManageStories /> : <Navigate to="/archive" />}
           />
 
           <Route
