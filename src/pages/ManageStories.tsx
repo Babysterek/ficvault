@@ -6,7 +6,7 @@ export default function ManageStories() {
     const [stories, setStories] = useState<any[]>([]);
 
     const fetchStories = async () => {
-        // 🧠 Gets stories AND their chapters
+        // Gets stories and their chapters
         const { data } = await supabase
             .from('stories')
             .select('*, chapters(id, chapter_number, title)')
@@ -20,7 +20,7 @@ export default function ManageStories() {
         <div style={{ padding: '40px', background: '#F2B29A', minHeight: '100vh' }}>
             <div style={{ background: 'white', padding: '30px', maxWidth: '900px', margin: 'auto', border: '2px solid #3E2723', textAlign: 'left' }}>
                 <h2 style={{ borderBottom: '2px solid #3E2723' }}>VAULT MANAGEMENT</h2>
-                <Link to="/archive">← Back to Archive</Link>
+                <Link to="/archive" style={{ color: '#3E2723' }}>← Back to Archive</Link>
 
                 {stories.map(s => (
                     <div key={s.id} style={{ border: '1px solid #eee', padding: '15px', marginTop: '20px' }}>
@@ -28,9 +28,10 @@ export default function ManageStories() {
                         <div style={{ background: '#f9f9f9', padding: '10px' }}>
                             {s.chapters?.sort((a: any, b: any) => a.chapter_number - b.chapter_number).map((ch: any) => (
                                 <div key={ch.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #ddd' }}>
-                                    <span>Chapter {ch.chapter_number}</span>
-                                    {/* 🌟 THIS LINK MUST START WITH /edit-chapter/ */}
-                                    <Link to={`/edit-chapter/${ch.id}`} style={{ fontWeight: 'bold', color: '#3E2723' }}>
+                                    <span>Chapter {ch.chapter_number}: {ch.title || 'Untitled'}</span>
+
+                                    {/* 🌟 THIS LINK MUST START WITH /edit-chapter/ NOT /read/ */}
+                                    <Link to={`/edit-chapter/${ch.id}`} style={{ fontWeight: 'bold', color: '#3E2723', textDecoration: 'none' }}>
                                         [EDIT CONTENT]
                                     </Link>
                                 </div>
