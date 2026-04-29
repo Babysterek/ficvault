@@ -9,7 +9,7 @@ export default function NewStory() {
     const editorRef = useRef<any>(null);
     const [loading, setLoading] = useState(false);
 
-    // AO3 Style Fields
+    // Form States
     const [title, setTitle] = useState('');
     const [rating, setRating] = useState('Not Rated');
     const [warnings, setWarnings] = useState('No Archive Warnings Apply');
@@ -23,12 +23,12 @@ export default function NewStory() {
         const content = editorRef.current ? editorRef.current.getContent() : '';
 
         if (!title || !fandoms || !content) {
-            return alert("Title, Fandom, and Content (Work Text) are required!");
+            return alert("Title, Fandom, and Work Text are required!");
         }
 
         setLoading(true);
         try {
-            // 1. Create the Story Record
+            // 1. Create the Story Entry
             const { data: storyData, error: storyError } = await supabase
                 .from('stories')
                 .insert([{
@@ -40,7 +40,7 @@ export default function NewStory() {
 
             if (storyError) throw storyError;
 
-            // 2. Create the first Chapter with the Editor content
+            // 2. Create Chapter 1 with the Editor content
             const { error: chapError } = await supabase
                 .from('chapters')
                 .insert([{
@@ -52,7 +52,7 @@ export default function NewStory() {
 
             if (chapError) throw chapError;
 
-            alert("✨ Work Published to the Vault!");
+            alert("✨ Work Successfully Archived!");
             navigate('/archive');
         } catch (err: any) {
             alert(err.message);
@@ -87,11 +87,10 @@ export default function NewStory() {
                         <textarea style={{ width: '100%', height: '60px', padding: '8px' }} placeholder="Summary" value={summary} onChange={(e) => setSummary(e.target.value)} />
                     </fieldset>
 
-                    {/* THE ADVANCED EDITOR */}
                     <div style={{ background: 'white', color: 'black', border: '1px solid #ccc' }}>
                         <Editor
-                            apiKey='no-api-key-needed'
-                            onInit={(evt: any, editor: any) => editorRef.current = editor}
+                            apiKey="0dwpdw2m9932lqvdy75kj7fil1nrgcio3dk6ij0f74cemevw"
+                            onInit={(_evt: any, editor: any) => editorRef.current = editor}
                             init={{
                                 height: 500,
                                 menubar: true,
