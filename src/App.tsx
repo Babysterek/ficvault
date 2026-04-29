@@ -4,12 +4,13 @@ import Gatekeeper from './components/Gatekeeper';
 import Home from './pages/Home';
 import Reader from './pages/Reader';
 import NewStory from './pages/NewStory';
-import MyStories from './pages/MyStories'; // Ensure this matches your file name exactly
+import MyStories from './pages/MyStories';
 import AdminPortal from './pages/AdminPortal';
 import PreHome from './pages/PreHome';
 import PostChapter from './pages/PostChapter';
 import ManageStories from './pages/ManageStories';
 import PostWordDoc from './pages/PostWordDoc';
+import PostEpub from './pages/PostEpub'; // Ensure this matches the file name!
 import './App.css';
 
 function App() {
@@ -19,67 +20,28 @@ function App() {
   });
 
   useEffect(() => {
-    if (user) {
-      localStorage.setItem('ficvault_user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('ficvault_user');
-    }
+    if (user) localStorage.setItem('ficvault_user', JSON.stringify(user));
+    else localStorage.removeItem('ficvault_user');
   }, [user]);
 
   return (
     <Router>
       <div className="app-container">
         <Routes>
-          {/* THE FRONT DOOR */}
           <Route path="/" element={<PreHome />} />
+          <Route path="/entry" element={!user ? <Gatekeeper setUser={setUser} /> : <Navigate to="/archive" />} />
+          <Route path="/archive" element={user ? <Home user={user} /> : <Navigate to="/entry" />} />
+          <Route path="/read/:id" element={user ? <Reader user={user} /> : <Navigate to="/entry" />} />
 
-          {/* THE LOGIN GATE */}
-          <Route
-            path="/entry"
-            element={!user ? <Gatekeeper setUser={setUser} /> : <Navigate to="/archive" />}
-          />
+          {/* Admin Routes */}
+          <Route path="/post-work" element={user?.isAdmin ? <NewStory /> : <Navigate to="/archive" />} />
+          <Route path="/post-chapter" element={user?.isAdmin ? <PostChapter /> : <Navigate to="/archive" />} />
+          <Route path="/post-word" element={user?.isAdmin ? <PostWordDoc /> : <Navigate to="/archive" />} />
+          <Route path="/post-epub" element={user?.isAdmin ? <PostEpub /> : <Navigate to="/archive" />} />
+          <Route path="/manage-stories" element={user?.isAdmin ? <ManageStories /> : <Navigate to="/archive" />} />
+          <Route path="/admin-portal" element={user?.isAdmin ? <AdminPortal /> : <Navigate to="/archive" />} />
 
-          {/* THE MAIN ARCHIVE */}
-          <Route
-            path="/archive"
-            element={user ? <Home user={user} /> : <Navigate to="/entry" />}
-          />
-
-          {/* READER PAGE */}
-          <Route
-            path="/read/:id"
-            element={user ? <Reader user={user} /> : <Navigate to="/entry" />}
-          />
-
-          {/* ADMIN TOOLS */}
-          <Route
-            path="/post-work"
-            element={user?.isAdmin ? <NewStory /> : <Navigate to="/archive" />}
-          />
-          <Route
-            path="/post-chapter"
-            element={user?.isAdmin ? <PostChapter /> : <Navigate to="/archive" />}
-          />
-          <Route
-            path="/post-word"
-            element={user?.isAdmin ? <PostWordDoc /> : <Navigate to="/archive" />}
-          />
-          <Route
-            path="/manage-stories"
-            element={user?.isAdmin ? <ManageStories /> : <Navigate to="/archive" />}
-          />
-          <Route
-            path="/admin-portal"
-            element={user?.isAdmin ? <AdminPortal /> : <Navigate to="/archive" />}
-          />
-
-          {/* USER PAGES */}
-          <Route
-            path="/my-stories"
-            element={user ? <MyStories /> : <Navigate to="/entry" />}
-          />
-
-          {/* CATCH ALL */}
+          <Route path="/my-stories" element={user ? <MyStories /> : <Navigate to="/entry" />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
