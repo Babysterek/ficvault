@@ -4,7 +4,7 @@ import Gatekeeper from './components/Gatekeeper';
 import Home from './pages/Home';
 import Reader from './pages/Reader';
 import NewStory from './pages/NewStory';
-import MyStories from './pages/MyStories'; // Match capitalization with sidebar
+import MyStories from './pages/MyStories';
 import AdminPortal from './pages/AdminPortal';
 import PreHome from './pages/PreHome';
 import PostChapter from './pages/PostChapter';
@@ -32,24 +32,28 @@ function App() {
     <Router>
       <div className="app-container">
         <Routes>
+          {/* 🏛️ LANDING PAGE */}
           <Route path="/" element={<PreHome />} />
 
+          {/* 🚪 ENTRY GATE */}
           <Route
             path="/entry"
             element={!user ? <Gatekeeper setUser={setUser} /> : <Navigate to="/archive" />}
           />
 
+          {/* 📚 MAIN ARCHIVE */}
           <Route
             path="/archive"
             element={user ? <Home user={user} /> : <Navigate to="/entry" />}
           />
 
+          {/* 📖 THE READER (Requires User for Bookmarks/Comments) */}
           <Route
             path="/read/:id"
-            element={user ? <Reader /> : <Navigate to="/entry" />}
+            element={user ? <Reader user={user} /> : <Navigate to="/entry" />}
           />
 
-          {/* 🔐 ADMIN ONLY ROUTES */}
+          {/* 🔐 ADMIN ONLY ROUTES (Protected by user?.isAdmin) */}
           <Route
             path="/post-work"
             element={user?.isAdmin ? <NewStory /> : <Navigate to="/archive" />}
@@ -79,12 +83,13 @@ function App() {
             element={user?.isAdmin ? <AdminPortal /> : <Navigate to="/archive" />}
           />
 
-          {/* 🔖 USER ROUTES */}
+          {/* 🔖 REGISTERED USER ROUTES */}
           <Route
             path="/my-stories"
             element={user ? <MyStories user={user} /> : <Navigate to="/entry" />}
           />
 
+          {/* 🔄 FALLBACK */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
