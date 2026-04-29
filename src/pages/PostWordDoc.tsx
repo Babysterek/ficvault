@@ -24,22 +24,25 @@ export default function PostWordDoc() {
 
         reader.onload = async (event: any) => {
             const arrayBuffer = event.target.result;
+            // 🌟 Converts Word to HTML while keeping Chapter Headings clear
             const result = await mammoth.convertToHtml({ arrayBuffer });
             const fullHtml = result.value;
 
-            // 🧠 SMARTER SPLITTER: 
-            // Only splits if "Chapter" is inside an <h2> or starts a new paragraph <p>
-            const chapterParts = fullHtml.split(/<(h2|p)>Chapter\s?\d+/i);
+            // 🧠 THE CLEAN SPLITTER:
+            // This regex looks for <h2>Chapter</h2> or <strong>Chapter</strong> 
+            // It ignores simple list items from the Table of Contents.
+            const chapterParts = fullHtml.split(/<(h1|h2|strong)>Chapter\s?\d+/i);
 
-            // Clean up the parts (remove tiny fragments and HTML tags from the split)
-            const cleanChapters = chapterParts.filter(c => c.trim().length > 50 && !c.includes('h2') && !c.includes('p'));
+            // Filter: Only keep parts that have actual story text (more than 200 characters)
+            const cleanChapters = chapterParts.filter(c => c.trim().length > 200);
 
             if (cleanChapters.length === 0) {
-                alert("Error: No chapters found. Make sure your Word doc has 'Chapter 1', 'Chapter 2' etc. as headings.");
+                alert("Could not detect chapters. Make sure they are marked as 'Heading' in Word.");
                 setLoading(false);
                 return;
             }
 
+            // 📤 UPLOADING TO VAULT
             for (let i = 0; i < cleanChapters.length; i++) {
                 await supabase.from('chapters').insert([{
                     story_id: selectedStory,
@@ -49,7 +52,7 @@ export default function PostWordDoc() {
                 }]);
             }
 
-            alert(`Successfully added ${cleanChapters.length} chapters!`);
+            alert(`Vault Updated! Successfully added ${cleanChapters.length} chapters.`);
             setLoading(false);
         };
 
@@ -58,18 +61,18 @@ export default function PostWordDoc() {
 
     return (
         <div style={{ padding: '40px', background: '#F2B29A', minHeight: '100vh' }}>
-            <div style={{ background: 'white', padding: '30px', maxWidth: '600px', margin: 'auto', border: '2px solid #3E2723', boxShadow: '10px 10px 0px #3E2723' }}>
-                <h2 style={{ fontFamily: 'serif' }}>WORD TO CHAPTER CONVERTER</h2>
-                <p style={{ fontSize: '0.8rem', color: '#666' }}>Your Word doc must have "Chapter 1", "Chapter 2" etc. at the start of each section.</p>
+            <div className="vault-card" style={{ background: 'white', padding: '30px', maxWidth: '600px', margin: 'auto', border: '2px solid #3E2723' }}>
+                <h2 style={{ fontFamily: 'serif' }}>VAULT: WORD IMPORT</h2>
+                <p style={{ fontSize: '0.8rem', color: '#666' }}>I will automatically skip the Table of Contents and split your 14 chapters.</p>
 
-                <select onChange={(e) => setSelectedStory(e.target.value)} style={{ width: '100%', padding: '10px', marginBottom: '20px', border: '1px solid #3E2723' }}>
-                    <option value="">Pick the story...</option>
+                <select onChange={(e) => setSelectedStory(e.target.value)} style={{ width: '100%', padding: '10px', marginBottom: '20px' }}>
+                    <option value="">Choose Story...</option>
                     {stories.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
                 </select>
 
-                <input type="file" accept=".docx" onChange={handleFileChange} disabled={loading} style={{ marginBottom: '20px' }} />
+                <input type="file" accept=".docx" onChange={handleFileChange} disabled={loading} />
 
-                {loading && <p style={{ fontWeight: 'bold', color: 'red' }}>ARCHIVING CHAPTERS... PLEASE WAIT.</p>}
+                {loading && <p style={{ color: 'red', fontWeight: 'bold', marginTop: '20px' }}>DECRYPTING & SPLITTING... PLEASE WAIT.</p>}
             </div>
         </div>
     );
