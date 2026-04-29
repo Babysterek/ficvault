@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../supabase';
+import StoryCard from '../components/StoryCard';
 
 export default function Home({ user }: any) {
     const [stories, setStories] = useState<any[]>([]);
@@ -8,72 +9,103 @@ export default function Home({ user }: any) {
 
     useEffect(() => {
         const fetchStories = async () => {
-            // 📊 Logic: Gets stories and their chapter counts
-            let query = supabase.from('stories').select('*, chapters(id)');
+            // 📊 Logic: Gets stories AND their chapter counts in one go
+            let query = supabase
+                .from('stories')
+                .select(`
+                    *,
+                    chapters (id)
+                `);
+
+            // 🕵️ SECURITY: If not admin, only show 'published' stories
             if (!user?.isAdmin) {
                 query = query.eq('status', 'published');
             }
-            const { data } = await query.order('created_at', { ascending: false });
-            if (data) setStories(data);
+
+            const { data, error } = await query.order('created_at', { ascending: false });
+
+            if (!error && data) {
+                setStories(data);
+            }
             setLoading(false);
         };
         fetchStories();
     }, [user]);
 
+    const handleLogout = () => {
+        localStorage.removeItem('ficvault_user');
+        window.location.reload();
+    };
+
     return (
         <div style={{ maxWidth: '1000px', margin: 'auto', padding: '20px', textAlign: 'left', minHeight: '100vh' }}>
-            <header style={{ borderBottom: '3px solid #3E2723', marginBottom: '30px', paddingBottom: '20px' }}>
-                <h1 style={{ color: '#3E2723', fontFamily: 'serif', fontSize: '2.5rem', margin: 0 }}>FICVAULT ARCHIVE</h1>
+            <header style={{ borderBottom: '4px solid #3E2723', marginBottom: '40px', paddingBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h1 style={{ color: '#3E2723', fontFamily: 'serif', fontSize: '3rem', margin: 0 }}>FICVAULT</h1>
+                    <button onClick={handleLogout} style={{ background: 'none', border: '1px solid #3E2723', color: '#3E2723', padding: '5px 15px', cursor: 'pointer', fontWeight: 'bold' }}>LOGOUT</button>
+                </div>
 
-                {/* 🧭 NAVIGATION WITH ALL YOUR BUTTONS */}
-                <nav style={{ display: 'flex', gap: '15px', marginTop: '15px', flexWrap: 'wrap', alignItems: 'center' }}>
-                    {user?.isAdmin && (
+                <p style={{ margin: '10px 0', fontSize: '0.9rem', color: '#666' }}>
+                    Authenticated as: <strong>{user?.pseudo || 'Guest'}</strong> {user?.isAdmin && <span style={{ color: '#2e7d32' }}>(ADMIN)</span>}
+                </p>
+
+                {/* 🧭 NAVIGATION BAR: ONLY SHOW ADMIN BUTTONS TO BABYSTEREK */}
+                <nav style={{ display: 'flex', gap: '10px', marginTop: '20px', flexWrap: 'wrap' }}>
+                    {user?.isAdmin ? (
                         <>
-                            <Link to="/post-work" style={btnStyle}>+ New</Link>
-                            <Link to="/post-word" style={btnStyle}>📥 Word Import</Link>
-                            <Link to="/post-epub" style={btnStyle}>📔 EPUB Import</Link>
-                            <Link to="/manage-stories" style={btnStyle}>⚙️ Manage Vault</Link>
+                            <Link to="/post-work" className="nav-btn-admin">+ NEW WORK</Link>
+                            <Link to="/post-word" className="nav-btn-admin">📥 WORD IMPORT</Link>
+                            <Link to="/post-epub" className="nav-btn-admin">📔 EPUB IMPORT</Link>
+                            <Link to="/manage-stories" className="nav-btn-admin">⚙️ MANAGE VAULT</Link>
+                            <Link to="/admin-portal" className="nav-btn-admin">🔑 ADMIN PORTAL</Link>
                         </>
+                    ) : (
+                        <p style={{ fontStyle: 'italic', fontSize: '0.8rem', color: '#3E2723' }}>Archive Access Level: Standard</p>
                     )}
-                    <Link to="/my-stories" style={{ color: '#3E2723', fontWeight: 'bold', textDecoration: 'none' }}>Bookmarks</Link>
-                    <button onClick={() => { localStorage.clear(); window.location.reload(); }} style={{ background: '#eee', border: '1px solid #ccc', padding: '5px 10px', cursor: 'pointer' }}>Logout</button>
+                    <Link to="/my-stories" style={userNavBtn}>🔖 BOOKMARKS</Link>
                 </nav>
             </header>
 
-            <div>
+            <div className="vault-list">
                 {loading ? (
-                    <p>Accessing records...</p>
+                    <p style={{ textAlign: 'center', padding: '50px', fontStyle: 'italic' }}>Accessing Vault Sectors...</p>
                 ) : stories.length > 0 ? (
                     stories.map((story) => (
-                        <div key={story.id} style={{ background: 'white', padding: '20px', border: '1px solid #3E2723', boxShadow: '5px 5px 0px #3E2723', marginBottom: '20px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <Link to={`/read/${story.id}`} style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#3E2723', textDecoration: 'none' }}>
-                                    {story.title} {story.status === 'draft' && <span style={{ color: 'red', fontSize: '0.8rem' }}>(DRAFT)</span>}
-                                </Link>
-                                <div style={{ textAlign: 'right', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                                    Chapters: {story.chapters?.length || 0}/{story.expected_chapters || '?'}
-                                </div>
-                            </div>
-                            <p style={{ margin: '5px 0' }}>By <strong>{story.author}</strong></p>
-                            <p style={{ fontSize: '0.9rem', fontStyle: 'italic', color: '#666' }}>{story.summary}</p>
-                            <Link to={`/read/${story.id}`} style={{ display: 'block', marginTop: '10px', fontWeight: 'bold', color: '#3E2723' }}>READ STORY →</Link>
-                        </div>
+                        <StoryCard key={story.id} story={story} />
                     ))
                 ) : (
-                    <p>The vault is empty.</p>
+                    <div style={{ padding: '60px', textAlign: 'center', border: '2px dashed #3E2723', background: 'rgba(255,255,255,0.5)' }}>
+                        <p style={{ fontSize: '1.2rem', color: '#3E2723' }}>The vault is currently empty.</p>
+                    </div>
                 )}
             </div>
+
+            {/* Inline Styles for Buttons */}
+            <style>{`
+                .nav-btn-admin {
+                    background: #3E2723;
+                    color: white;
+                    padding: 8px 15px;
+                    text-decoration: none;
+                    font-weight: bold;
+                    font-size: 0.8rem;
+                    border: 1px solid #3E2723;
+                }
+                .nav-btn-admin:hover {
+                    background: white;
+                    color: #3E2723;
+                }
+            `}</style>
         </div>
     );
 }
 
-// 🎨 Reusable button style
-const btnStyle = {
+const userNavBtn = {
+    background: 'white',
     color: '#3E2723',
-    fontWeight: 'bold' as 'bold',
+    padding: '8px 15px',
     textDecoration: 'none',
-    border: '1px solid #3E2723',
-    padding: '5px 10px',
-    fontSize: '0.9rem',
-    borderRadius: '4px'
+    fontWeight: 'bold' as 'bold',
+    fontSize: '0.8rem',
+    border: '1px solid #3E2723'
 };
