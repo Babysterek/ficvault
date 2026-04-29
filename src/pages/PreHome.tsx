@@ -48,7 +48,7 @@ export default function PreHome() {
                     Secure Private Archive
                 </p>
 
-                {/* 🔑 ACCESS BUTTON */}
+                {/* 🔑 ACCESS BUTTON - LINKS TO GATEKEEPER */}
                 <Link
                     to="/entry"
                     style={{
