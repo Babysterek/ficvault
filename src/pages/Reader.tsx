@@ -2,42 +2,99 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../supabase';
 
-export default function Reader() {
+export default function Reader({ user }: any) {
     const { id } = useParams();
+    const [story, setStory] = useState<any>(null);
     const [chapters, setChapters] = useState<any[]>([]);
     const [currentIdx, setCurrentIdx] = useState(0);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetch = async () => {
-            const { data } = await supabase.from('chapters')
+        const fetchFullStory = async () => {
+            // 1. Fetch Story Details
+            const { data: sData } = await supabase.from('stories').select('*').eq('id', id).single();
+
+            // 2. Fetch ONLY Published Chapters
+            const { data: cData } = await supabase.from('chapters')
                 .select('*')
                 .eq('story_id', id)
-                .order('chapter_number', { ascending: true }); // 🌟 IMPORTANT
-            if (data) setChapters(data);
+                .eq('is_published', true) // 🛡️ PRIVACY: Hide drafts from everyone
+                .order('chapter_number', { ascending: true });
+
+            if (sData) setStory(sData);
+            if (cData) setChapters(cData);
+            setLoading(false);
         };
-        fetch();
+        fetchFullStory();
     }, [id]);
+
+    if (loading) return <div style={{ padding: '50px', textAlign: 'center' }}>Decrypting records...</div>;
+
+    // If no chapters are published yet
+    if (!chapters.length) return (
+        <div style={{ padding: '50px', textAlign: 'center', background: '#F2B29A', minHeight: '100vh' }}>
+            <div style={{ background: 'white', padding: '40px', maxWidth: '600px', margin: 'auto', border: '1px solid #3E2723' }}>
+                <h2>{story?.title}</h2>
+                <p>This work is currently in <strong>Draft Status</strong>.</p>
+                <Link to="/archive" style={{ color: '#3E2723', fontWeight: 'bold' }}>← BACK TO ARCHIVE</Link>
+            </div>
+        </div>
+    );
 
     const ch = chapters[currentIdx];
 
     return (
         <div style={{ background: '#F2B29A', minHeight: '100vh', padding: '20px' }}>
-            <div style={{ maxWidth: '850px', margin: 'auto', background: 'white', padding: '40px' }}>
-                <Link to="/archive">← BACK</Link>
-                {ch && (
-                    <div style={{ marginTop: '30px', textAlign: 'left' }}>
-                        <h2 style={{ textAlign: 'center' }}>{ch.title}</h2>
-                        <div
-                            style={{ lineHeight: '1.8', fontSize: '1.1rem', fontFamily: 'serif' }}
-                            dangerouslySetInnerHTML={{ __html: ch.content }}
-                        />
-                    </div>
-                )}
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '40px' }}>
-                    <button disabled={currentIdx === 0} onClick={() => setCurrentIdx(currentIdx - 1)}>← PREV</button>
-                    <button disabled={currentIdx === chapters.length - 1} onClick={() => setCurrentIdx(currentIdx + 1)}>NEXT →</button>
+            <div style={{ maxWidth: '850px', margin: 'auto', background: 'white', padding: '40px', borderRadius: '8px', textAlign: 'left', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                    <Link to="/archive" style={{ color: '#3E2723', fontWeight: 'bold', textDecoration: 'none' }}>← BACK</Link>
+                    {user?.id !== 'guest' && (
+                        <span style={{ fontSize: '0.8rem', color: '#999' }}>Vault Reader Mode</span>
+                    )}
+                </div>
+
+                <header style={{ borderBottom: '2px solid #3E2723', marginBottom: '30px', paddingBottom: '10px' }}>
+                    <h1 style={{ fontFamily: 'serif', margin: 0, fontSize: '2.5rem' }}>{story?.title}</h1>
+                    <p style={{ fontSize: '1.1rem' }}>By <strong>{story?.author || 'Babysterek'}</strong></p>
+                </header>
+
+                <section>
+                    <h2 style={{ textAlign: 'center', fontFamily: 'serif', color: '#5D4037' }}>
+                        Chapter {ch.chapter_number}: {ch.title}
+                    </h2>
+
+                    {/* 🌟 AUTO-IMAGE RENDERER: Turns links into pictures automatically */}
+                    <div
+                        style={{ lineHeight: '1.8', fontSize: '1.15rem', fontFamily: 'Georgia, serif', marginTop: '30px' }}
+                        dangerouslySetInnerHTML={{
+                            __html: ch.content.replace(
+                                /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp))/gi,
+                                '<img src="$1" style="max-width:100%; height:auto; display:block; margin: 20px auto;" />'
+                            )
+                        }}
+                    />
+                </section>
+
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginTop: '50px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
+                    <button
+                        disabled={currentIdx === 0}
+                        onClick={() => { setCurrentIdx(currentIdx - 1); window.scrollTo(0, 0); }}
+                        style={btnNav}
+                    >
+                        ← PREVIOUS
+                    </button>
+                    <button
+                        disabled={currentIdx === chapters.length - 1}
+                        onClick={() => { setCurrentIdx(currentIdx + 1); window.scrollTo(0, 0); }}
+                        style={btnNav}
+                    >
+                        NEXT CHAPTER →
+                    </button>
                 </div>
             </div>
         </div>
     );
 }
+
+const btnNav = { padding: '10px 25px', cursor: 'pointer', background: '#eee', border: '1px solid #3E2723', fontWeight: 'bold' };
