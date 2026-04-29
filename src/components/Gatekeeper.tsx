@@ -1,87 +1,51 @@
 import { useState } from 'react';
+import { supabase } from '../supabase';
 
-const Gatekeeper = ({ setUser }: any) => {
-    const [inviteCode, setInviteCode] = useState('');
+export default function Gatekeeper({ setUser }: any) {
+    const [isLogin, setIsLogin] = useState(true);
+    const [otp, setOtp] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [pseudo, setPseudo] = useState('');
-    const [adminKey, setAdminKey] = useState('');
-    const [isUnlocked, setIsUnlocked] = useState(false);
 
-    const checkCode = (e: any) => {
-        const val = e.target.value;
-        setInviteCode(val);
-        // GATE 1: The secret invitation code
-        if (val.toLowerCase() === "halefire") {
-            setIsUnlocked(true);
+    const handleAuth = async () => {
+        if (isLogin) {
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) return alert("Access Denied: Invalid Credentials");
+            setUser({ ...data.user, pseudo: data.user?.user_metadata?.pseudo });
+        } else {
+            const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { pseudo } } });
+            if (error) return alert(error.message);
+            alert("Verification email sent!");
         }
     };
 
-    const handleAccess = () => {
-        // GATE 2: Admin credentials check
-        const isAdmin = pseudo === 'Babysterek' && adminKey === 'ammuisfine';
-
-        if (isUnlocked) {
-            const userData = {
-                pseudo: pseudo || 'Anonymous',
-                isAdmin: isAdmin
-            };
-
-            // 🌟 SAVE TO MEMORY: This tells the computer to remember you
-            localStorage.setItem('ficvault_user', JSON.stringify(userData));
-
-            // Update the app state
-            setUser(userData);
-        } else {
-            alert("Access Denied: Invalid invitation code.");
-        }
+    const enterAsGuest = async () => {
+        const { data } = await supabase.from('vault_access').select('*').eq('otp_code', otp).eq('is_used', false).single();
+        if (data) setUser({ id: 'guest', pseudo: 'Guest Visitor', isAdmin: false });
+        else alert("🔒 Invalid or expired OTP.");
     };
 
     return (
-        <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F2B29A' }}>
-            <div className="vault-card" style={{ background: 'white', padding: '40px', border: '1px solid #3E2723', boxShadow: '10px 10px 0px #3E2723', width: '350px' }}>
-                <h2 style={{ fontFamily: 'serif', letterSpacing: '2px', textAlign: 'center', marginBottom: '20px' }}>FICVAULT ACCESS</h2>
-
-                <div style={{ textAlign: 'left', marginBottom: '15px' }}>
-                    <label style={{ fontSize: '0.7rem', fontWeight: 'bold' }}>STEP 1: INVITATION CODE</label>
-                    <input
-                        type="password"
-                        placeholder="••••••••"
-                        value={inviteCode}
-                        onChange={checkCode}
-                        style={{ width: '100%', padding: '10px', border: 'none', borderBottom: '2px solid #3E2723', outline: 'none' }}
-                    />
+        <div style={{ background: '#F2B29A', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ background: 'white', padding: '40px', border: '2px solid #3E2723', width: '350px', boxShadow: '10px 10px 0 #3E2723' }}>
+                <h2 style={{ fontFamily: 'serif' }}>{isLogin ? 'MEMBER LOGIN' : 'CREATE ID'}</h2>
+                {!isLogin && <input placeholder="Pseudo" onChange={e => setPseudo(e.target.value)} style={inputStyle} />}
+                <input placeholder="Email" onChange={e => setEmail(e.target.value)} style={inputStyle} />
+                <input type="password" placeholder="Password" onChange={e => setPassword(e.target.value)} style={inputStyle} />
+                <button onClick={handleAuth} style={btnStyle}>{isLogin ? 'ENTER' : 'REGISTER'}</button>
+                <p onClick={() => setIsLogin(!isLogin)} style={{ cursor: 'pointer', fontSize: '0.7rem', marginTop: '10px' }}>
+                    {isLogin ? "New here? Register Account" : "Return to Login"}
+                </p>
+                <div style={{ borderTop: '1px solid #ddd', marginTop: '20px', paddingTop: '20px' }}>
+                    <p style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>GUEST ENTRY (OTP)</p>
+                    <input placeholder="6-Digit Code" onChange={e => setOtp(e.target.value)} style={inputStyle} />
+                    <button onClick={enterAsGuest} style={{ ...btnStyle, background: '#5D4037' }}>ACCESS AS GUEST</button>
                 </div>
-
-                {isUnlocked && (
-                    <div className="fade-in">
-                        <div style={{ textAlign: 'left', marginBottom: '15px' }}>
-                            <label style={{ fontSize: '0.7rem', fontWeight: 'bold' }}>STEP 2: PSEUDONYM</label>
-                            <input
-                                placeholder="Enter your name..."
-                                onChange={(e) => setPseudo(e.target.value)}
-                                style={{ width: '100%', padding: '10px', border: 'none', borderBottom: '2px solid #3E2723', outline: 'none' }}
-                            />
-                        </div>
-
-                        {pseudo === 'Babysterek' && (
-                            <div style={{ textAlign: 'left', marginBottom: '15px' }}>
-                                <label style={{ fontSize: '0.7rem', fontWeight: 'bold', color: 'red' }}>STEP 3: MASTER KEY</label>
-                                <input
-                                    type="password"
-                                    placeholder="••••••••"
-                                    onChange={(e) => setAdminKey(e.target.value)}
-                                    style={{ width: '100%', padding: '10px', border: 'none', borderBottom: '2px solid red', outline: 'none' }}
-                                />
-                            </div>
-                        )}
-
-                        <button onClick={handleAccess} style={{ width: '100%', marginTop: '20px', background: '#3E2723', color: 'white', padding: '12px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
-                            {pseudo === 'Babysterek' ? 'UNLOCK MASTER VAULT' : 'ENTER ARCHIVE'}
-                        </button>
-                    </div>
-                )}
             </div>
         </div>
     );
-};
+}
 
-export default Gatekeeper;
+const inputStyle = { width: '100%', padding: '10px', marginBottom: '10px', border: '1px solid #3E2723' };
+const btnStyle = { width: '100%', padding: '10px', background: '#3E2723', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 'bold' };
