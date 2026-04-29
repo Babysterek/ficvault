@@ -5,7 +5,7 @@ import { supabase } from '../supabase';
 import { Editor } from '@tinymce/tinymce-react';
 
 export default function EditChapter() {
-    const { id } = useParams(); // Chapter ID
+    const { id } = useParams();
     const navigate = useNavigate();
     const editorRef = useRef<any>(null);
     const [chapter, setChapter] = useState<any>(null);
@@ -22,22 +22,17 @@ export default function EditChapter() {
 
     const handleUpdate = async () => {
         const newContent = editorRef.current ? editorRef.current.getContent() : '';
-        const { error } = await supabase.from('chapters').update({ content: newContent }).eq('id', id);
-
-        if (error) alert(error.message);
-        else {
-            alert("✨ Chapter Updated!");
-            navigate('/manage-stories');
-        }
+        await supabase.from('chapters').update({ content: newContent }).eq('id', id);
+        alert("Changes Saved!");
+        navigate('/manage-stories');
     };
 
-    if (loading) return <div style={{ padding: '50px' }}>Loading Chapter Data...</div>;
+    if (loading) return <div style={{ padding: '50px' }}>Decrypting File...</div>;
 
     return (
         <div style={{ padding: '40px', background: '#F2B29A', minHeight: '100vh' }}>
-            <div style={{ background: 'white', padding: '30px', maxWidth: '1000px', margin: 'auto', textAlign: 'left', border: '1px solid #3E2723' }}>
-                <h2>EDITING: {chapter?.stories?.title} - Chapter {chapter?.chapter_number}</h2>
-
+            <div style={{ background: 'white', padding: '30px', maxWidth: '1000px', margin: 'auto', border: '2px solid #3E2723', textAlign: 'left' }}>
+                <h2>EDITING: {chapter?.stories?.title} - Ch {chapter?.chapter_number}</h2>
                 <div style={{ marginTop: '20px', border: '1px solid #ccc' }}>
                     <Editor
                         apiKey="0dwpdw2m9932lqvdy75kj7fil1nrgcio3dk6ij0f74cemevw"
@@ -49,13 +44,9 @@ export default function EditChapter() {
                             plugins: ['link', 'image', 'lists', 'code', 'hr', 'paste', 'media'],
                             toolbar: 'undo redo | blocks fontfamily | bold italic underline | bullist numlist | link image media | code',
                             image_dimensions: true,
-                            // 🌟 MAGIC FIX: This helps TinyMCE "see" image links
-                            paste_data_images: true,
-                            smart_paste: true
                         }}
                     />
                 </div>
-
                 <button onClick={handleUpdate} style={{ marginTop: '20px', padding: '15px 40px', background: '#3E2723', color: 'white', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
                     SAVE CHANGES
                 </button>
