@@ -1,11 +1,72 @@
-import { Link } from 'react-router-dom';
+import { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../supabase';
+// @ts-ignore
+import { Editor } from '@tinymce/tinymce-react';
 
-export default function MyStories({ user }: any) {
+export default function NewStory() {
+    const navigate = useNavigate();
+    const editorRef = useRef<any>(null);
+    const [loading, setLoading] = useState(false);
+
+    const [title, setTitle] = useState('');
+    const [rating, setRating] = useState('Not Rated');
+    const [fandoms, setFandoms] = useState('');
+    const [summary, setSummary] = useState('');
+
+    const handlePost = async () => {
+        const content = editorRef.current ? editorRef.current.getContent() : '';
+        if (!title || !fandoms || !content) return alert("Title, Fandom, and Content are required!");
+
+        setLoading(true);
+        try {
+            const { data: storyData, error: storyError } = await supabase
+                .from('stories')
+                .insert([{ title, rating, fandoms, summary, author: 'Babysterek' }])
+                .select().single();
+
+            if (storyError) throw storyError;
+
+            const { error: chapError } = await supabase
+                .from('chapters')
+                .insert([{ story_id: storyData.id, chapter_number: 1, content: content, title: 'Chapter 1' }]);
+
+            if (chapError) throw chapError;
+            navigate('/archive');
+        } catch (err: any) { alert(err.message); } finally { setLoading(false); }
+    };
+
     return (
-        <div style={{ padding: '40px', maxWidth: '800px', margin: 'auto' }}>
-            <Link to="/" style={{ color: '#3E2723' }}>← Back to Archive</Link>
-            <h1>{user.pseudo}'s Vault</h1>
-            <p style={{ fontStyle: 'italic' }}>Your bookmarked stories and subscriptions appear here.</p>
+        <div style={{ background: '#eee', minHeight: '100vh', padding: '20px', textAlign: 'left', color: '#000' }}>
+            <div style={{ maxWidth: '1000px', margin: 'auto', background: 'white', border: '1px solid #ccc', padding: '20px' }}>
+                <h2 style={{ background: '#3E2723', color: 'white', padding: '10px', margin: '-20px -20px 20px -20px' }}>FICVAULT: POST NEW WORK</h2>
+
+                <div style={{ display: 'grid', gap: '15px', marginTop: '20px' }}>
+                    <input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} style={{ padding: '10px' }} />
+                    <input placeholder="Fandoms" value={fandoms} onChange={(e) => setFandoms(e.target.value)} style={{ padding: '10px' }} />
+                    <textarea placeholder="Summary" value={summary} onChange={(e) => setSummary(e.target.value)} style={{ height: '60px', padding: '10px' }} />
+                </div>
+
+                <div style={{ margin: '20px 0', border: '1px solid #ccc' }}>
+                    <Editor
+                        apiKey="0dwpdw2m9932lqvdy75kj7fil1nrgcio3dk6ij0f74cemevw"
+                        onInit={(_evt: any, editor: any) => editorRef.current = editor}
+                        init={{
+                            height: 500,
+                            menubar: true,
+                            plugins: ['link', 'image', 'lists', 'code', 'help', 'wordcount', 'media'],
+                            toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | image link media | code',
+                            image_dimensions: true,
+                            image_title: true,
+                            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+                        }}
+                    />
+                </div>
+
+                <button onClick={handlePost} disabled={loading} style={{ background: '#3E2723', color: 'white', padding: '15px 40px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}>
+                    {loading ? "ARCHIVING..." : "POST TO VAULT"}
+                </button>
+            </div>
         </div>
     );
 }
