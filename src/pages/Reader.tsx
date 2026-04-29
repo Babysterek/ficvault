@@ -53,8 +53,34 @@ export default function Reader({ user }: any) {
 
             <div style={{ maxWidth: '850px', margin: 'auto', background: 'white', padding: '40px', borderRadius: '8px', textAlign: 'left', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                     <Link to="/archive" style={{ color: '#3E2723', fontWeight: 'bold', textDecoration: 'none' }}>← BACK</Link>
+
+                    {/* 📚 CHAPTER INDEX DROPDOWN */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <label style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#3E2723' }}>INDEX:</label>
+                        <select
+                            value={currentIdx}
+                            onChange={(e) => {
+                                setCurrentIdx(parseInt(e.target.value));
+                                window.scrollTo(0, 0);
+                            }}
+                            style={{
+                                padding: '5px 10px',
+                                border: '1px solid #3E2723',
+                                background: 'white',
+                                fontFamily: 'serif',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            {chapters.map((chapter, index) => (
+                                <option key={chapter.id} value={index}>
+                                    Chapter {chapter.chapter_number}: {chapter.title}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
                     {user?.id !== 'guest' && (
                         <span style={{ fontSize: '0.8rem', color: '#999' }}>Vault Reader Mode</span>
                     )}
