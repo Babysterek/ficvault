@@ -45,6 +45,12 @@ export default function Reader({ user }: any) {
 
     return (
         <div style={{ background: '#F2B29A', minHeight: '100vh', padding: '20px' }}>
+
+            {/* 🎨 WORK SKIN INJECTOR: Injects custom story CSS if it exists */}
+            {story?.work_skin && (
+                <style dangerouslySetInnerHTML={{ __html: story.work_skin }} />
+            )}
+
             <div style={{ maxWidth: '850px', margin: 'auto', background: 'white', padding: '40px', borderRadius: '8px', textAlign: 'left', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
@@ -59,7 +65,8 @@ export default function Reader({ user }: any) {
                     <p style={{ fontSize: '1.1rem' }}>By <strong>{story?.author || 'Babysterek'}</strong></p>
                 </header>
 
-                <section>
+                {/* 🏷️ CONTENT WRAPPER: Use 'id="workskin"' to make sure your CSS applies to this section */}
+                <section id="workskin">
                     <h2 style={{ textAlign: 'center', fontFamily: 'serif', color: '#5D4037' }}>
                         Chapter {ch.chapter_number}: {ch.title}
                     </h2>
