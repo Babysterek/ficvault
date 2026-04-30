@@ -53,3 +53,52 @@ body {
   gap: 20px;
   padding: 10px;
 }
+
+/* 📱 MOBILE OPTIMIZATIONS */
+@media (max-width: 768px) {
+
+  .app-container,
+  .vault-list,
+  .new-story {
+    padding: 10px !important;
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  nav {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  nav a,
+  nav button {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* 📧 FIX GMAIL SKIN FOR MOBILE */
+  #workskin .gmail-interface {
+    flex-direction: column !important;
+    height: auto !important;
+  }
+
+  #workskin .gmail-sidebar {
+    width: 100% !important;
+    display: flex !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    border-right: none !important;
+    border-bottom: 1px solid #ddd !important;
+    padding: 10px !important;
+  }
+
+  #workskin .gmail-body {
+    padding: 20px !important;
+  }
+}
