@@ -11,6 +11,7 @@ import PostChapter from './pages/PostChapter';
 import ManageStories from './pages/ManageStories';
 import PostWordDoc from './pages/PostWordDoc';
 import PostEpub from './pages/PostEpub';
+import MySubscriptions from './pages/MySubscriptions';
 import EditChapter from './pages/EditChapter';
 import './App.css';
 
@@ -87,6 +88,10 @@ function App() {
           <Route
             path="/my-stories"
             element={user ? <MyStories user={user} /> : <Navigate to="/entry" />}
+          />
+          <Route
+            path="/my-subscriptions"
+            element={user ? <MySubscriptions user={user} /> : <Navigate to="/entry" />}
           />
 
           <Route path="*" element={<Navigate to="/" />} />

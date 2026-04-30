@@ -70,6 +70,9 @@ export default function Home({ user }: any) {
                             <Link to="/post-epub" className="nav-btn-admin">📔 EPUB IMPORT</Link>
                             <Link to="/manage-stories" className="nav-btn-admin">⚙️ MANAGE VAULT</Link>
                             <Link to="/admin-portal" className="nav-btn-admin">🔑 ADMIN PORTAL</Link>
+                            <Link to="/my-stories" style={userNavBtn}>🔖 BOOKMARKS</Link>
+                            <Link to="/my-subscriptions" className="nav-btn-admin">🔔 MY SUBSCRIPTIONS</Link>
+                            
                         </>
                     ) : (
                         <p style={{ fontStyle: 'italic', fontSize: '0.8rem', color: '#3E2723' }}>Archive Access Level: Standard</p>
