@@ -15,7 +15,9 @@ export default function Gatekeeper({ setUser }: any) {
         }
 
         // 🆔 2. CITIZEN AUTH (Hidden Email logic)
-        const fakeEmail = `${id.toLowerCase()}@vault.local`;
+        // 🛠️ FIX: Added .replace to remove spaces/special chars that cause "Database Error"
+        const cleanId = id.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+        const fakeEmail = `${cleanId}@vault.local`;
 
         if (isLogin) {
             // Login existing user
@@ -27,11 +29,15 @@ export default function Gatekeeper({ setUser }: any) {
             setUser({ ...data.user, pseudo: id, isAdmin: false });
         } else {
             // Register new user
-            const { data, error } = await supabase.auth.signUp({
+            const { error } = await supabase.auth.signUp({
                 email: fakeEmail,
                 password: pass
             });
-            if (error) return alert(error.message);
+
+            if (error) {
+                return alert("Database Error: " + error.message);
+            }
+
             alert("✨ Citizen ID Created! You can now login.");
             setIsLogin(true);
         }
