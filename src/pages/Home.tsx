@@ -17,6 +17,7 @@ export default function Home({ user }: any) {
                     chapters (id, is_published, word_count)
                 `);
 
+            // 🔐 HIDE DRAFTS: Only Babysterek (Admin) can see stories with status 'draft'
             if (!user?.isAdmin) {
                 query = query.eq('status', 'published');
             }
@@ -26,6 +27,7 @@ export default function Home({ user }: any) {
             if (!error && data) {
                 // 🧠 Process stories to calculate live stats before setting state
                 const processedStories = data.map(story => {
+                    // Only count chapters that are actually marked as live
                     const liveChapters = story.chapters?.filter((c: any) => c.is_published).length || 0;
                     const totalWords = story.chapters?.reduce((sum: number, c: any) => sum + (c.word_count || 0), 0) || 0;
 
@@ -59,6 +61,7 @@ export default function Home({ user }: any) {
                     Authenticated as: <strong>{user?.pseudo || 'Guest'}</strong> {user?.isAdmin && <span style={{ color: '#2e7d32' }}>(ADMIN)</span>}
                 </p>
 
+                {/* 🧭 NAVIGATION BAR */}
                 <nav style={{ display: 'flex', gap: '10px', marginTop: '20px', flexWrap: 'wrap' }}>
                     {user?.isAdmin ? (
                         <>
@@ -84,7 +87,7 @@ export default function Home({ user }: any) {
                     ))
                 ) : (
                     <div style={{ padding: '60px', textAlign: 'center', border: '2px dashed #3E2723', background: 'rgba(255,255,255,0.5)' }}>
-                        <p style={{ fontSize: '1.2rem', color: '#3E2723' }}>The vault is currently empty.</p>
+                        <p style={{ fontSize: '1.2rem', color: '#3E2723' }}>No published records found.</p>
                     </div>
                 )}
             </div>
