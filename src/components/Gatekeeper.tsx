@@ -9,16 +9,14 @@ export default function Gatekeeper({ setUser }: any) {
     const [otp, setOtp] = useState('');
 
     const handleAuth = async () => {
-        // 🕵️ 1. ADMIN CHECK (Immediate bypass)
+        // 🕵️ 1. ADMIN CHECK
         if (id === 'Babysterek' && pass === 'ammuisfine') {
             setUser({ id: 'admin_1', pseudo: 'Babysterek', isAdmin: true });
             return;
         }
 
-        // 🆔 2. CITIZEN ID CLEANUP 
-        // This removes all spaces and special characters for the internal email
+        // 🆔 2. ID CLEANUP (Removes spaces/special chars for background email)
         const cleanId = id.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-
         if (!cleanId) return alert("Please enter a valid ID (letters/numbers only).");
 
         const fakeEmail = `${cleanId}@ficvault.com`;
@@ -33,9 +31,6 @@ export default function Gatekeeper({ setUser }: any) {
             if (error) {
                 return alert("🔒 Vault Access Denied: Check ID/Pass or register first.");
             }
-            <p style={{ fontSize: '0.7rem', marginTop: '15px' }}>
-    By registering, you agree to the <Link to="/terms" style={{color: '#3E2723', fontWeight: 'bold'}}>Vault Protocols</Link>.
-</p>
 
             setUser({ ...data.user, pseudo: id, isAdmin: false });
         } else {
@@ -51,13 +46,13 @@ export default function Gatekeeper({ setUser }: any) {
 
             if (data.user) {
                 alert("✨ Citizen ID Created! You can now login with: " + id);
-                setIsLogin(true); // Automatically flip to login mode
+                setIsLogin(true);
             }
         }
     };
 
     const handleGuest = async () => {
-        // 🔑 3. GUEST OTP CHECK (halefire)
+        // 🔑 3. GUEST OTP CHECK
         const { data } = await supabase
             .from('vault_access')
             .select('*')
@@ -103,13 +98,21 @@ export default function Gatekeeper({ setUser }: any) {
                     <p onClick={() => setIsLogin(!isLogin)} style={toggleText}>
                         {isLogin ? "Need a permanent ID? Register here." : "Return to Login"}
                     </p>
+
+                    {/* 📜 TERMS LINK (Moved correctly to the UI) */}
+                    {!isLogin && (
+                        <p style={{ fontSize: '0.7rem', marginTop: '15px', textAlign: 'center' }}>
+                            By registering, you agree to the <Link to="/terms" style={{ color: '#3E2723', fontWeight: 'bold' }}>Vault Protocols</Link>.
+                        </p>
+                    )}
                 </div>
 
                 {/* --- GUEST SECTION --- */}
                 <div style={{ borderTop: '2px solid #eee', paddingTop: '20px' }}>
                     <label style={labelStyle}>GUEST OTP (READ ONLY)</label>
                     <input
-                        placeholder="halefire"
+                        type="password"
+                        placeholder="Enter Code..."
                         onChange={e => setOtp(e.target.value)}
                         style={inputStyle}
                     />
