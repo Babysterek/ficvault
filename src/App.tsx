@@ -98,3 +98,42 @@ function App() {
 }
 
 export default App;
+/* 📱 MOBILE OPTIMIZATIONS */
+@media(max - width: 768px) {
+    /* Make the story cards and containers fill the screen */
+    .app - container, .vault - list, .new - story {
+    padding: 10px!important;
+    width: 100 % !important;
+  }
+
+    /* Stack navigation buttons so they don't overlap */
+    nav {
+    flex - direction: column;
+    gap: 5px!important;
+  }
+
+    /* Ensure images don't go off-screen */
+    img {
+    max - width: 100 % !important;
+    height: auto!important;
+  }
+
+  /* 📧 FIX GMAIL SKIN FOR MOBILE */
+  #workskin.gmail - interface {
+    flex - direction: column; /* Stack sidebar on top of email */
+    height: auto!important;
+  }
+
+  #workskin.gmail - sidebar {
+    width: 100 % !important;
+    display: flex;
+    overflow - x: auto; /* Scrollable menu on mobile */
+    white - space: nowrap;
+    border - right: none;
+    border - bottom: 1px solid #ddd;
+  }
+
+  #workskin.gmail - body {
+    padding: 20px!important; /* Remove the large left margin on phones */
+  }
+}
