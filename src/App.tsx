@@ -13,6 +13,7 @@ import PostWordDoc from './pages/PostWordDoc';
 import PostEpub from './pages/PostEpub';
 import MySubscriptions from './pages/MySubscriptions';
 import EditChapter from './pages/EditChapter';
+import Terms from './pages/Terms';
 import './App.css';
 
 function App() {
@@ -93,6 +94,7 @@ function App() {
             path="/my-subscriptions"
             element={user ? <MySubscriptions user={user} /> : <Navigate to="/entry" />}
           />
+          <Route path="/terms" element={<Terms />} />
 
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '../supabase';
 
 export default function Gatekeeper({ setUser }: any) {
@@ -32,6 +33,9 @@ export default function Gatekeeper({ setUser }: any) {
             if (error) {
                 return alert("🔒 Vault Access Denied: Check ID/Pass or register first.");
             }
+            <p style={{ fontSize: '0.7rem', marginTop: '15px' }}>
+    By registering, you agree to the <Link to="/terms" style={{color: '#3E2723', fontWeight: 'bold'}}>Vault Protocols</Link>.
+</p>
 
             setUser({ ...data.user, pseudo: id, isAdmin: false });
         } else {
