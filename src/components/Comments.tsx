@@ -3,12 +3,11 @@ import { supabase } from '../supabase';
 
 export default function Comments({ storyId, chapterId, user, commentsEnabled }: any) {
     const [comments, setComments] = useState<any[]>([]);
-    const [newComment, setNewComment] = useState('');
-    const [replyTo, setReplyId] = useState<string | null>(null);
+    const [text, setText] = useState('');
+    const [replyTo, setReplyTo] = useState<string | null>(null);
 
     const fetchComments = async () => {
-        const { data } = await supabase
-            .from('comments')
+        const { data } = await supabase.from('comments')
             .select('*')
             .eq('chapter_id', chapterId)
             .order('created_at', { ascending: true });
@@ -18,66 +17,74 @@ export default function Comments({ storyId, chapterId, user, commentsEnabled }: 
     useEffect(() => { fetchComments(); }, [chapterId]);
 
     const postComment = async () => {
-        if (!newComment.trim()) return;
+        if (!text.trim()) return;
         const { error } = await supabase.from('comments').insert([{
             story_id: storyId,
             chapter_id: chapterId,
-            user_id: user?.id,
             user_pseudo: user?.pseudo || 'Guest Visitor',
-            content: newComment,
+            content: text,
             parent_id: replyTo
         }]);
-        if (!error) { setNewComment(''); setReplyId(null); fetchComments(); }
+        if (!error) { setText(''); setReplyTo(null); fetchComments(); }
     };
 
     const deleteComment = async (id: string) => {
-        if (window.confirm("Delete this comment?")) {
+        if (window.confirm("Admin: Permanently delete this comment?")) {
             await supabase.from('comments').delete().eq('id', id);
             fetchComments();
         }
     };
 
+    const reportComment = async (id: string) => {
+        await supabase.from('comments').update({ is_reported: true }).eq('id', id);
+        alert("⚠️ Flagged for Admin review.");
+        fetchComments();
+    };
+
     return (
         <div style={{ marginTop: '50px', borderTop: '2px solid #3E2723', paddingTop: '30px', textAlign: 'left' }}>
-            <h3 style={{ fontFamily: 'serif' }}>REVIEWS & COMMENTS ({comments.length})</h3>
+            <h3 style={{ fontFamily: 'serif' }}>COMMENTS ({comments.length})</h3>
 
-            {/* ✍️ POST BOX */}
+            {/* ✍️ INPUT BOX */}
             {commentsEnabled ? (
-                <div style={{ marginBottom: '30px', background: '#f9f9f9', padding: '20px', border: '1px solid #ddd' }}>
-                    <p style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>{replyTo ? `Replying to comment...` : 'Leave a review:'}</p>
+                <div style={{ marginBottom: '30px' }}>
                     <textarea
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        style={{ width: '100%', height: '80px', marginBottom: '10px', padding: '10px' }}
-                        placeholder="Write your thoughts..."
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                        placeholder={replyTo ? "Writing a reply..." : "Leave a comment..."}
+                        style={{ width: '100%', height: '80px', padding: '10px', border: '1px solid #3E2723', boxSizing: 'border-box' }}
                     />
-                    <div style={{ display: 'flex', gap: '10px' }}>
+                    <div style={{ marginTop: '10px', display: 'flex', gap: '10px' }}>
                         <button onClick={postComment} style={btnStyle}>POST COMMENT</button>
-                        {replyTo && <button onClick={() => setReplyId(null)} style={{ background: '#ccc', border: 'none', padding: '5px 10px' }}>Cancel Reply</button>}
+                        {replyTo && <button onClick={() => setReplyTo(null)} style={{ background: '#ccc', border: 'none', padding: '5px 15px', cursor: 'pointer' }}>Cancel Reply</button>}
                     </div>
                 </div>
             ) : (
-                <p style={{ fontStyle: 'italic', color: '#666' }}>🔒 Commenting has been restricted for this work.</p>
+                <p style={{ fontStyle: 'italic', color: '#666' }}>🔒 Commenting is restricted.</p>
             )}
 
-            {/* 💬 LIST */}
+            {/* 💬 COMMENT LIST */}
             {comments.map(c => (
                 <div key={c.id} style={{
-                    marginBottom: '15px',
-                    padding: '15px',
-                    background: 'white',
-                    border: '1px solid #eee',
+                    padding: '15px', border: '1px solid #eee', marginBottom: '10px',
                     marginLeft: c.parent_id ? '40px' : '0',
+                    background: c.is_reported ? '#fff0f0' : 'white',
                     boxShadow: '2px 2px 0px #eee'
                 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <strong>{c.user_pseudo}</strong>
-                        <small>{new Date(c.created_at).toLocaleDateString()}</small>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                        <strong>{c.user_pseudo} {c.is_reported && <span style={{ color: 'red' }}>⚠️ [FLAGGED]</span>}</strong>
+                        <span>{new Date(c.created_at).toLocaleDateString()}</span>
                     </div>
-                    <p style={{ margin: '10px 0' }}>{c.content}</p>
+                    <p style={{ margin: '10px 0', fontSize: '0.95rem' }}>{c.content}</p>
                     <div style={{ display: 'flex', gap: '15px' }}>
-                        {commentsEnabled && <button onClick={() => setReplyId(c.id)} style={smallBtn}>Reply</button>}
-                        {user?.isAdmin && <button onClick={() => deleteComment(c.id)} style={{ ...smallBtn, color: 'red' }}>Delete</button>}
+                        {commentsEnabled && <button onClick={() => setReplyTo(c.id)} style={linkBtn}>Reply</button>}
+
+                        {/* Users can report, Admin can delete */}
+                        {!user?.isAdmin ? (
+                            <button onClick={() => reportComment(c.id)} style={linkBtn}>Report</button>
+                        ) : (
+                            <button onClick={() => deleteComment(c.id)} style={{ ...linkBtn, color: 'red' }}>Delete</button>
+                        )}
                     </div>
                 </div>
             ))}
@@ -85,5 +92,5 @@ export default function Comments({ storyId, chapterId, user, commentsEnabled }: 
     );
 }
 
-const btnStyle = { background: '#3E2723', color: 'white', border: 'none', padding: '10px 20px', cursor: 'pointer', fontWeight: 'bold' };
-const smallBtn = { background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem', textDecoration: 'underline', color: '#3E2723', padding: 0 };
+const btnStyle = { background: '#3E2723', color: 'white', border: 'none', padding: '10px 20px', cursor: 'pointer', fontWeight: 'bold' as 'bold' };
+const linkBtn = { background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem', textDecoration: 'underline', color: '#3E2723', padding: 0 };

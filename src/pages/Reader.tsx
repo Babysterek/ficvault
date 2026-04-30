@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../supabase';
-import Comments from '../components/Comments'; // 🌟 1. IMPORT COMMENTS
-
+import Comments from '../components/Comments';
 export default function Reader({ user }: any) {
     const { id } = useParams();
     const [story, setStory] = useState<any>(null);
