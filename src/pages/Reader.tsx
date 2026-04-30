@@ -110,10 +110,12 @@ export default function Reader({ user }: any) {
                     <div
                         style={{ lineHeight: '1.8', fontSize: '1.15rem', fontFamily: 'Georgia, serif', marginTop: '30px' }}
                         dangerouslySetInnerHTML={{
-                            __html: ch.content.replace(
-                                /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp))/gi,
-                                '<img src="$1" style="max-width:100%; height:auto; display:block; margin: 20px auto;" />'
-                            )
+                            __html: ch.content.includes('<div') || ch.content.includes('<img')
+                                ? ch.content
+                                : ch.content.replace(
+                                    /(https?:\/\/.*\.(?:png|jpg|jpeg|gif|webp))/gi,
+                                    '<img src="$1" style="max-width:100%; height:auto; display:block; margin: 20px auto;" />'
+                                )
                         }}
                     />
                 </section>
@@ -134,7 +136,6 @@ export default function Reader({ user }: any) {
                         NEXT CHAPTER →
                     </button>
                 </div>
-
                 <Comments
                     storyId={id}
                     chapterId={ch.id}
