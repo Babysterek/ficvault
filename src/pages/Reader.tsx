@@ -12,7 +12,10 @@ export default function Reader({ user }: any) {
 
     useEffect(() => {
         const fetchFullStory = async () => {
+            // 1. Fetch Story Details
             const { data: sData } = await supabase.from('stories').select('*').eq('id', id).single();
+
+            // 2. Fetch ONLY Published Chapters
             const { data: cData } = await supabase.from('chapters')
                 .select('*')
                 .eq('story_id', id)
@@ -26,11 +29,29 @@ export default function Reader({ user }: any) {
         fetchFullStory();
     }, [id]);
 
+    // 🔖 Bookmark Logic
+    const addBookmark = async () => {
+        if (!user || user.id === 'guest') return alert("🔒 Please sign in to bookmark stories.");
+        const { error } = await supabase.from('bookmarks').insert([{ user_id: user.id, story_id: id }]);
+        if (error) alert("Already in your bookmarks!");
+        else alert("🔖 Added to Pinned Records!");
+    };
+
+    // 📩 Subscribe Logic
+    const subscribeToStory = async () => {
+        if (!user || user.id === 'guest' || !user.email || user.email.includes('@vault.local')) {
+            return alert("📧 Email required. Please sign in with a verified email to receive update alerts.");
+        }
+        const { error } = await supabase.from('subscriptions').insert([{ user_id: user.id, story_id: id, user_email: user.email }]);
+        if (error) alert("You are already subscribed!");
+        else alert("📬 Subscribed! You will get alerts for new chapters.");
+    };
+
     if (loading) return <div style={{ padding: '50px', textAlign: 'center' }}>Decrypting records...</div>;
 
     if (!chapters.length) return (
         <div style={{ padding: '50px', textAlign: 'center', background: '#F2B29A', minHeight: '100vh' }}>
-            <div style={{ background: 'white', padding: '40px', maxWidth: '600px', margin: 'auto', border: '1px solid #3E2723' }}>
+            <div style={{ background: 'white', padding: '40px', maxWidth: '600px', margin: 'auto', border: '2px solid #3E2723' }}>
                 <h2>{story?.title}</h2>
                 <p>This work is currently in <strong>Draft Status</strong>.</p>
                 <Link to="/archive" style={{ color: '#3E2723', fontWeight: 'bold' }}>← BACK TO ARCHIVE</Link>
@@ -70,9 +91,11 @@ export default function Reader({ user }: any) {
                         </select>
                     </div>
 
-                    {user?.id !== 'guest' && (
-                        <span style={{ fontSize: '0.8rem', color: '#999' }}>Vault Reader Mode</span>
-                    )}
+                    {/* 🛠️ Interaction Buttons */}
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <button onClick={addBookmark} style={btnSmall}>🔖 BOOKMARK</button>
+                        <button onClick={subscribeToStory} style={btnSmall}>📩 SUBSCRIBE</button>
+                    </div>
                 </div>
 
                 <header style={{ borderBottom: '2px solid #3E2723', marginBottom: '30px', paddingBottom: '10px' }}>
@@ -113,7 +136,6 @@ export default function Reader({ user }: any) {
                     </button>
                 </div>
 
-                {/* 🌟 2. ADD COMMENTS COMPONENT HERE */}
                 <Comments
                     storyId={id}
                     chapterId={ch.id}
@@ -127,3 +149,4 @@ export default function Reader({ user }: any) {
 }
 
 const btnNav = { padding: '10px 25px', cursor: 'pointer', background: '#eee', border: '1px solid #3E2723', fontWeight: 'bold' as 'bold' };
+const btnSmall = { padding: '5px 10px', fontSize: '0.75rem', cursor: 'pointer', background: 'white', border: '1px solid #3E2723', fontWeight: 'bold' as 'bold', color: '#3E2723' };
