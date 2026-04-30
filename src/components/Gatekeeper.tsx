@@ -20,7 +20,7 @@ export default function Gatekeeper({ setUser }: any) {
 
         if (!cleanId) return alert("Please enter a valid ID (letters/numbers only).");
 
-        const fakeEmail = `${cleanId}@vault.local`;
+        const fakeEmail = `${cleanId}@ficvault.com`;
 
         if (isLogin) {
             // --- LOGIN MODE ---
